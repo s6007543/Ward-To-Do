@@ -151,42 +151,13 @@
     <script>
         // 🛠️ วาง Firebase Config ของคุณตรงนี้ (อย่าลืมเปลี่ยนเป็นของจริงนะครับ)
         const firebaseConfig = {
-            apiKey: "ใส่_API_KEY_ของคุณ",
-            authDomain: "ใส่_AUTH_DOMAIN_ของคุณ",
-            projectId: "ใส่_PROJECT_ID_ของคุณ",
-            storageBucket: "ใส่_STORAGE_BUCKET_ของคุณ",
-            messagingSenderId: "ใส่_MESSAGING_SENDER_ID_ของคุณ",
-            appId: "ใส่_APP_ID_ของคุณ"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const provider = new firebase.auth.GoogleAuthProvider();
-        
-        // 🛡️ ระบบป้องกันโค้ดพังบน iPhone (Safe Initialization)
-        let messaging = null;
-        if (firebase.messaging.isSupported) {
-            firebase.messaging.isSupported().then((supported) => {
-                if (supported) {
-                    messaging = firebase.messaging();
-                    
-                    // รับแจ้งเตือนตอนเปิดแอปทิ้งไว้ (ย้ายมาไว้ในนี้เพื่อความปลอดภัย)
-                    messaging.onMessage((payload) => {
-                        console.log('ได้รับข้อความขณะเปิดแอป: ', payload);
-                        alert(`🚨 แจ้งเตือน: ${payload.notification.title}\nงาน: ${payload.notification.body}`);
-                    });
-                }
-            }).catch(err => console.log("Web Push ไม่รองรับ:", err));
-        }
-        // 🛠️ วาง Firebase Config ของคุณตรงนี้ (อย่าลืมเปลี่ยนเป็นของจริงนะครับ)
-        const firebaseConfig = {
-            apiKey: "ใส่_API_KEY_ของคุณ",
-            authDomain: "ใส่_AUTH_DOMAIN_ของคุณ",
-            projectId: "ใส่_PROJECT_ID_ของคุณ",
-            storageBucket: "ใส่_STORAGE_BUCKET_ของคุณ",
-            messagingSenderId: "ใส่_MESSAGING_SENDER_ID_ของคุณ",
-            appId: "ใส่_APP_ID_ของคุณ"
+            apiKey: "AIzaSyB0gDLbeoWBGVINbNFZMJVZriXFXg-pZFs",
+            authDomain: "patient-care-7d42d.firebaseapp.com",
+            projectId: "patient-care-7d42d",
+            storageBucket: "patient-care-7d42d.firebasestorage.app",
+            messagingSenderId: "375365313770",
+            appId: "1:375365313770:web:88c348583c0d59c23fe393",
+            measurementId: "G-DVGYE8TFEH"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -288,7 +259,7 @@
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
                     // ⚠️ ใส่ VAPID KEY ของคุณตรงนี้ (สำคัญมาก)
-                    const currentToken = await messaging.getToken({ vapidKey: 'ใส่_VAPID_KEY_ของคุณตรงนี้' });
+                    const currentToken = await messaging.getToken({ vapidKey: 'BIm3lpIV2EO0GKCC4Aul_8bTvz0Js5eLb1OX3D6q7sdEfx7n788CNowmedhLPtD_UhlaDDYfrhdvDGi1OpMMaj8' });
                     
                     if (currentToken) {
                         console.log("FCM Token:", currentToken);
