@@ -173,7 +173,7 @@
 
         // 🛠️ แก้ไขเรียบร้อย: สั่งลงทะเบียนสแตนด์บาย Service Worker ทันทีที่เปิดเว็บแก้ปัญหาค้างบน iOS PWA
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            navigator.serviceWorker.register('./firebase-messaging-sw.js')
                 .then(reg => console.log('Service Worker สแตนด์บายเรียบร้อย', reg))
                 .catch(err => console.error('SW Setup Fail:', err));
         }
@@ -273,7 +273,7 @@
                 alert("⏳ 2/3 ได้รับสิทธิ์แล้ว กำลังเชื่อมต่อเบื้องหลัง...");
                 
                 // ใช้ register แทน ready เพื่อบังคับให้คืนค่ากลับมาแน่นอน ไม่ค้าง
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
                 const messaging = firebase.messaging();
                 
                 alert("⏳ 3/3 เชื่อมต่อสำเร็จ กำลังสร้างรหัส Token...");
