@@ -163,7 +163,6 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
         
-        // 🛠️ คืนชีพตัวแปรเริ่มต้น (ถ้าหายไป โค้ดจะค้างทันที)
         let categories = ["เตียง 1", "เตียง 2"]; 
         let tasks = []; 
         let presetTasks = ["พลิกตัว", "วัดความดัน", "เจาะเลือด", "ให้ยา", "เปลี่ยนสายน้ำเกลือ"]; 
@@ -172,18 +171,23 @@
         let currentUser = null;
         let cloudUnsubscribe = null;
 
-        // 🛡️ ระบบป้องกันโค้ดพังบน iPhone (Safe Initialization)
-        let messaging = null;
-        if (firebase.messaging.isSupported) {
-            firebase.messaging.isSupported().then((supported) => {
-                if (supported) {
-                    messaging = firebase.messaging();
-                    messaging.onMessage((payload) => {
-                        console.log('ได้รับข้อความขณะเปิดแอป: ', payload);
-                        alert(`🚨 แจ้งเตือน: ${payload.notification.title}\nงาน: ${payload.notification.body}`);
-                    });
-                }
-            }).catch(err => console.log("Web Push ไม่รองรับ:", err));
+        // 🛠️ แก้ไขเรียบร้อย: สั่งลงทะเบียนสแตนด์บาย Service Worker ทันทีที่เปิดเว็บแก้ปัญหาค้างบน iOS PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .then(reg => console.log('Service Worker สแตนด์บายเรียบร้อย', reg))
+                .catch(err => console.error('SW Setup Fail:', err));
+        }
+
+        // เซ็ตระบบดักฟังข้อความเวลาเปิดแอปค้างไว้ (Foreground Message) แบบปลอดภัยไม่ให้แอปช็อก
+        try {
+            if ('PushManager' in window) {
+                firebase.messaging().onMessage((payload) => {
+                    console.log('ได้รับข้อความขณะเปิดแอป: ', payload);
+                    alert(`🚨 แจ้งเตือน: ${payload.notification.title}\nงาน: ${payload.notification.body}`);
+                });
+            }
+        } catch (e) {
+            console.log("FCM Foreground Listener skipped:", e);
         }
 
         // --- ระบบ Authentication และดึงข้อมูลคลาวด์เรียลไทม์ ---
@@ -210,7 +214,6 @@
                 document.getElementById('auth-status-text').textContent = `👤 ใช้งานแบบออฟไลน์`;
                 document.getElementById('btn-auth-action').textContent = "เชื่อมต่อ Google";
                 
-                // ใช้ข้อมูลออฟไลน์จากเครื่อง
                 const localCat = localStorage.getItem('local_categories');
                 const localTasks = localStorage.getItem('local_tasks');
                 const localPresets = localStorage.getItem('local_presets');
@@ -250,28 +253,39 @@
             }
         }
 
+        // 🛠️ แก้ไขเสร็จสมบูรณ์: เปลี่ยนมาเรียกสิทธิ์และผูก Registration แบบ Dynamic จบปัญหาแจ้งเตือนวนลูปบน iPhone
         async function requestNotificationPermission() {
-            if (!messaging) {
-                alert("🚨 อุปกรณ์นี้หรือเบราว์เซอร์นี้ยังไม่รองรับระบบ Web Push ครับ\n\nสำหรับ iPhone กรุณากดปุ่ม 📤 (แชร์) > เลือก ➕ 'เพิ่มไปยังหน้าจอโฮม' แล้วเข้าแอปผ่านหน้าจอหลักครับ");
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                alert("🚨 อุปกรณ์หรือเบราว์เซอร์นี้ยังไม่รองรับระบบ Web Push ครับ\n\nสำหรับ iPhone ต้องใช้ iOS 16.4 ขึ้นไป และต้องกดปุ่ม 📤 (แชร์) > เลือก ➕ 'เพิ่มไปยังหน้าจอโฮม' เพื่อรันผ่านหน้าจอหลักเท่านั้นครับ");
                 return;
             }
 
             try {
+                // 1. ขอสิทธิ์แจ้งเตือนระดับ OS
                 const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    const currentToken = await messaging.getToken({ vapidKey: 'BIm3lpIV2EO0GKCC4Aul_8bTvz0Js5eLb1OX3D6q7sdEfx7n788CNowmedhLPtD_UhlaDDYfrhdvDGi1OpMMaj8' });
-                    
-                    if (currentToken) {
-                        console.log("FCM Token:", currentToken);
-                        if (currentUser) {
-                            db.collection("patient_data").doc(currentUser.uid).set({ fcmToken: currentToken }, { merge: true });
-                        }
-                        alert("🔓 เปิดการแจ้งเตือน Web Push สำเร็จ!");
-                    } else {
-                        alert("ไม่สามารถสร้าง Token ได้ ลองใหม่อีกครั้งครับ");
+                if (permission !== 'granted') {
+                    alert("การแจ้งเตือนถูกปฏิเสธ (กรุณาเปิดสิทธิ์ในการตั้งค่าการแจ้งเตือนของ iPhone)");
+                    return;
+                }
+
+                // 2. ดึง Service Worker ตัวที่พร้อมทำงานมาผูกระบบ Token
+                const registration = await navigator.serviceWorker.ready;
+                const messaging = firebase.messaging();
+                
+                // 3. เรียกขอ Token แบบระบุจุดอ้างอิงตรงตัว
+                const currentToken = await messaging.getToken({ 
+                    vapidKey: 'BIm3lpIV2EO0GKCC4Aul_8bTvz0Js5eLb1OX3D6q7sdEfx7n788CNowmedhLPtD_UhlaDDYfrhdvDGi1OpMMaj8',
+                    serviceWorkerRegistration: registration
+                });
+                
+                if (currentToken) {
+                    console.log("FCM Token:", currentToken);
+                    if (currentUser) {
+                        await db.collection("patient_data").doc(currentUser.uid).set({ fcmToken: currentToken }, { merge: true });
                     }
+                    alert("🔓 เปิดการแจ้งเตือน Web Push สำเร็จ!\nระบบซิงค์คลาวด์และพร้อมแจ้งเตือนเบื้องหลังแล้วครับ");
                 } else {
-                    alert("การแจ้งเตือนถูกปฏิเสธ (กรุณาไปปลดบล็อกในตั้งค่าของโทรศัพท์)");
+                    alert("ไม่สามารถสร้าง Token ได้ ลองใหม่อีกครั้งครับ");
                 }
             } catch (err) {
                 console.error('Error Web Push: ', err);
@@ -279,6 +293,7 @@
             }
         }
 
+        // --- ฟังก์ชันพื้นฐานทั้งหมด (เวลา/เสียง/ตารางงาน) ---
         function setDefaultDate() {
             const now = new Date();
             document.getElementById('date-input').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
