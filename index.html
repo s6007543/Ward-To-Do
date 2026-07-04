@@ -108,8 +108,21 @@
         .btn-danger-outline { background-color: transparent; border: 1px solid #f0f0f0; color: #999999; width: 100%; font-size: 0.85rem; }
         .btn-danger-outline:hover { border-color: #ff4d4f; color: #ff4d4f; background-color: #fff1f0; }
         
-        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .category-chip { background-color: #f5f5f5; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; color: #333; cursor: pointer; border: 1px solid #e5e5e5; user-select: none; -webkit-user-select: none; }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 30px; }
+        
+        /* สไตล์ปุ่มชิปแบบป้องกันการเลือกข้อความซ้อนบนมือถือ */
+        .category-chip { 
+            background-color: #f5f5f5; 
+            padding: 6px 12px; 
+            border-radius: 16px; 
+            font-size: 0.8rem; 
+            color: #333; 
+            cursor: pointer; 
+            border: 1px solid #e5e5e5; 
+            user-select: none; 
+            -webkit-user-select: none;
+            touch-action: manipulation; /* ป้องกันการซูมหน้าจอดับเบิลแท็ปของ iOS Safari */
+        }
         .category-chip:hover { background-color: #e0e0e0; }
         .category-chip .edit-mark { color: #999; margin-left: 4px; font-size: 0.75rem; }
 
@@ -167,7 +180,7 @@
                     <button class="btn-black" onclick="startAllInOneDictation()">🎤 พูดเพื่อเพิ่ม</button>
                 </div>
                 <p class="hint-text" style="text-align: left; margin-top: 2px; color: #8c8c8c;">
-                    *พูดรวดเดียวจบได้ เช่น: "เตียง 1 พlikตัวผู้ป่วย วันนี้ ตอนบ่ายสามโมงครึ่ง"*
+                    *พูดรวดเดียวจบได้ เช่น: "เตียง 1 พลิกตัวผู้ป่วย วันนี้ ตอนบ่ายสามโมงครึ่ง"*
                 </p>
             </div>
 
@@ -203,10 +216,23 @@
         let editingTaskId = null; 
 
         function initApp() {
-            const localCat = localStorage.getItem('local_categories');
-            const localTasks = localStorage.getItem('local_tasks');
-            if (localCat) categories = JSON.parse(localCat);
-            if (localTasks) tasks = JSON.parse(localTasks);
+            try {
+                const localCat = localStorage.getItem('local_categories');
+                const localTasks = localStorage.getItem('local_tasks');
+                if (localCat) categories = JSON.parse(localCat);
+                if (localTasks) tasks = JSON.parse(localTasks);
+            } catch(e) {
+                console.error("การโหลดความจำเครื่องขัดข้อง", e);
+            }
+
+            // 🛡️ Data Recovery Guard: ป้องกันปุ่มหายตัวแบบเด็ดขาด
+            if (!categories || !Array.isArray(categories) || categories.length === 0) {
+                categories = ["เตียง 1", "เตียง 2"];
+                saveToDevice();
+            }
+            if (!tasks || !Array.isArray(tasks)) {
+                tasks = [];
+            }
 
             updateCategoryDropdown();
             renderCategoryChips(); 
@@ -284,24 +310,38 @@
             });
         }
 
-        // 🛠️ แก้ไขเรียบร้อย: ปรับการทำงานของปุ่มชิป (คลิก 1 ครั้งเพื่อเลือก / ดับเบิลคลิกเพื่อแก้ไขชื่อ)
+        // 🛠️ แก้ไขเรียบร้อย: เปลี่ยนมาใช้ระบบนับความเร็วการกดด้วยมิลลิวินาที (Custom Click Timer) เพื่อรองรับ iPhone Safari 100%
         function renderCategoryChips() {
             const zone = document.getElementById('category-chips-zone');
             zone.innerHTML = "";
+            
+            if (!categories || categories.length === 0) categories = ["เตียง 1", "เตียง 2"];
+
             categories.forEach(cat => {
                 const chip = document.createElement('div');
                 chip.className = 'category-chip';
                 chip.innerHTML = `${cat} <span class="edit-mark">✏️</span>`;
                 
-                // คลิก 1 ครั้ง: เลือกหมวดหมู่ในช่องรายการที่ต้องทำอัตโนมัติ
-                chip.onclick = function() {
-                    document.getElementById('category-select').value = cat;
-                };
-                
-                // ดับเบิลคลิก (คลิก 2 ครั้งเร็วๆ): เปลี่ยนชื่อหมวดหมู่
-                chip.ondblclick = function() {
-                    renameCategory(cat);
-                };
+                let lastClick = 0;
+                let clickTimeout;
+                const delay = 300; // กำหนดความเร็วสูงสุดของการกด 2 ครั้งติดกัน (300 มิลลิวินาที)
+
+                chip.addEventListener('click', function(e) {
+                    const currentTime = Date.now();
+                    const timeDiff = currentTime - lastClick;
+
+                    if (timeDiff < delay && timeDiff > 0) {
+                        // 2. ดับเบิลคลิกสำเร็จ: สั่งเปลี่ยนชื่อทันที และยกเลิกคำสั่งคลิกครั้งแรก
+                        clearTimeout(clickTimeout);
+                        renameCategory(cat);
+                    } else {
+                        // 1. คลิกครั้งแรก: หน่วงเวลาไว้ 0.3 วินาทีเพื่อดูว่าผู้ใช้จะกดเบิ้ลไหม ถ้าไม่เบิ้ลให้เลือกหมวดหมู่
+                        clickTimeout = setTimeout(function() {
+                            document.getElementById('category-select').value = cat;
+                        }, delay);
+                    }
+                    lastClick = currentTime;
+                });
                 
                 zone.appendChild(chip);
             });
@@ -437,4 +477,152 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
                 recognition.lang = 'th-TH';
-                const cancelBtn = document.getElementById
+                const cancelBtn = document.getElementById('cancel-voice-btn');
+                cancelBtn.textContent = "กำลังฟังเสียงเพื่อยกเลิก...";
+
+                recognition.onresult = function(event) {
+                    let transcript = event.results[0][0].transcript.trim();
+                    let normalizedTranscript = normalizeThaiNumbers(transcript);
+                    let cleanTranscript = transcript.replace(/\s+/g, '');
+                    let cleanNormalized = normalizedTranscript.replace(/\s+/g, '');
+                    let matchedCategory = null;
+
+                    const sortedCategories = [...categories].sort((a, b) => b.length - a.length);
+                    for (let cat of sortedCategories) {
+                        const cleanCat = cat.replace(/\s+/g, '');
+                        if (cleanTranscript.includes(cleanCat) || cleanNormalized.includes(cleanCat)) { matchedCategory = cat; break; }
+                    }
+
+                    if (!matchedCategory) { alert(`❌ ไม่พบชื่อเตียงจากเสียงพูด: "${transcript}"`); resetCancelButton(); return; }
+
+                    const bedRegex = new RegExp(matchedCategory, 'gi');
+                    const normCat = normalizeThaiNumbers(matchedCategory);
+                    const bedNormRegex = new RegExp(normCat, 'gi');
+
+                    let taskKeyword = normalizedTranscript.replace(bedRegex, '').replace(bedNormRegex, '').replace(/ยกเลิก/g, '').replace(/เตียง/g, '').trim();
+                    let cleanKeyword = taskKeyword.replace(/\s+/g, '');
+
+                    if (!cleanKeyword) { alert(`❌ กรุณาระบุชื่องานด้วยครับ`); resetCancelButton(); return; }
+
+                    const initialCount = tasks.length;
+                    tasks = tasks.filter(task => {
+                        if (task.category === matchedCategory) {
+                            const cleanTaskText = task.text.replace(/\s+/g, '');
+                            if (cleanTaskText.includes(cleanKeyword) || cleanKeyword.includes(cleanTaskText)) return false; 
+                        }
+                        return true; 
+                    });
+
+                    if (tasks.length < initialCount) { alert(`🗑️ ยกเลิกรายการสำเร็จ`); renderTaskBoard(); saveToDevice(); } 
+                    else { alert(`❌ ไม่พบงานที่มีคำว่า "${taskKeyword}" ในหมวด "${matchedCategory}"`); }
+                    resetCancelButton();
+                };
+                recognition.onerror = function() { resetCancelButton(); };
+                function resetCancelButton() { cancelBtn.textContent = "🎙️ พูดเพื่อยกเลิกงาน"; }
+                recognition.start();
+            }
+        }
+
+        function addTask() {
+            const category = document.getElementById('category-select').value;
+            const text = document.getElementById('task-input').value.trim();
+            const date = document.getElementById('date-input').value; 
+            const time = document.getElementById('time-input').value; 
+            if (!text) { alert("❌ กรุณากรอกข้อความ 'สิ่งที่ต้องทำ' ครับ"); return; }
+            if (!date) { alert("❌ กรุณาเลือก 'วันที่' ครับ"); return; }
+            if (!time) { alert("❌ กรุณากรอก 'เวลา' ครับ"); return; }
+
+            if (editingTaskId) {
+                const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
+                if (taskIndex > -1) {
+                    tasks[taskIndex].category = category; tasks[taskIndex].text = text; tasks[taskIndex].date = date; tasks[taskIndex].time = time; tasks[taskIndex].notified = false; 
+                }
+                editingTaskId = null;
+                document.getElementById('form-title').textContent = "เพิ่มรายการที่ต้องทำ";
+                document.getElementById('btn-submit-task').textContent = "บันทึกรายการ";
+                document.getElementById('date-input').classList.remove('edit-highlight');
+                document.getElementById('time-input').classList.remove('edit-highlight');
+            } else {
+                tasks.push({ id: Date.now().toString(), category, text, date, time, notified: false });
+            }
+            document.getElementById('task-input').value = "";
+            document.getElementById('time-input').value = "";
+            setDefaultDate(); renderTaskBoard(); saveToDevice();
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id); if (!task) return;
+            document.getElementById('category-select').value = task.category;
+            document.getElementById('task-input').value = task.text;
+            document.getElementById('date-input').value = task.date;
+            const timeInput = document.getElementById('time-input'); timeInput.value = ""; 
+            setTimeout(() => {
+                timeInput.value = task.time; timeInput.classList.add('edit-highlight');
+                document.getElementById('date-input').classList.add('edit-highlight');
+            }, 50);
+            editingTaskId = id;
+            document.getElementById('form-title').textContent = "✍️ กำลังแก้ไขรายการ";
+            document.getElementById('btn-submit-task').textContent = "💾 อัปเดตรายการที่แก้ไข";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteTask(id) {
+            if (confirm("คุณต้องการลบงานนี้ใช่หรือไม่?")) {
+                tasks = tasks.filter(t => t.id !== id);
+                renderTaskBoard();
+                saveToDevice();
+            }
+        }
+
+        function renderTaskBoard() {
+            const board = document.getElementById('task-board'); board.innerHTML = "";
+            categories.forEach(cat => {
+                const catTasks = tasks.filter(t => t.category === cat).sort((a, b) => {
+                    return `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`);
+                });
+                if (catTasks.length > 0) {
+                    const card = document.createElement('div'); card.className = 'category-card';
+                    const title = document.createElement('div'); title.className = 'category-title'; title.textContent = cat; card.appendChild(title);
+                    const ul = document.createElement('ul');
+                    catTasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <div class="task-content-wrapper">
+                                <button class="btn-delete-x" onclick="deleteTask('${task.id}')" title="ลบงานนี้">✖</button>
+                                <span class="task-text">${task.text}</span>
+                            </div>
+                            <div class="task-badge-group">
+                                <button class="btn-edit" onclick="editTask('${task.id}')">แก้ไข</button>
+                                <span class="task-date">${formatDateDisplay(task.date)}</span>
+                                <span class="task-time">${task.time}</span>
+                            </div>
+                        `;
+                        ul.appendChild(li);
+                    });
+                    card.appendChild(ul); board.appendChild(card);
+                }
+            });
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            const currentDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            tasks.forEach(task => {
+                if (task.date === currentDate && task.time === currentTime && !task.notified) {
+                    sendNotification(task.category, task.text); task.notified = true; saveToDevice();
+                }
+            });
+        }, 1000);
+
+        function sendNotification(category, taskMessage) {
+            const title = `🚨 แจ้งเตือน: ${category}`;
+            if (Notification.permission === "granted") {
+                new Notification(title, { body: taskMessage, icon: "https://cdn-icons-png.flaticon.com/512/825/825590.png" });
+            } else { alert(`${title}\nงาน: ${taskMessage}`); }
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
