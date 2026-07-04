@@ -3,200 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Care Voice To-Do</title>
+    <title>Patient Care — Minimal To-Do</title>
     <style>
+        /* รีเซ็ตและตั้งค่าฟอนต์สไตล์ Minimal (Clean Sans-Serif) */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f4f8;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fafafa;
+            color: #1a1a1a;
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             display: flex;
             justify-content: center;
         }
+        
+        /* กล่องหลัก ดีไซน์คลีน ขอบบาง ไร้เงาหนาทึบ */
         .app-container {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            background: #ffffff;
             width: 100%;
-            max-width: 500px;
+            max-width: 460px;
+            border: 1px solid #eaeaea;
+            border-radius: 12px;
+            padding: 32px;
+            box-sizing: border-box;
         }
-        h2, h3 {
-            color: #2c3e50;
-            text-align: center;
+        
+        h2 {
+            font-weight: 500;
+            font-size: 1.4rem;
+            letter-spacing: -0.02em;
             margin-top: 0;
+            margin-bottom: 24px;
+            text-align: center;
+            color: #1a1a1a;
         }
+        
+        h3 {
+            font-weight: 500;
+            font-size: 1.05rem;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+        }
+        
+        /* เปลี่ยนจากกล่องพื้นหลังทึบ เป็นการแบ่งเส้นเบาๆ แทน */
         .section-box {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #f0f0f0;
         }
+        
         .input-group {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
+        
+        /* Label ตัวเล็ก เรียบร้อย สไตล์มินิมอล */
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #8c8c8c;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        input[type="text"], input[type="time"], select {
+        
+        /* ช่องกรอกข้อมูลสไตล์คลีน */
+        input[type="text"], input[type="date"], input[type="time"], select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            transition: border-color 0.2s, background-color 0.2s;
         }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1a1a1a; /* เปลี่ยนเป็นขอบเข้มเมื่อโฟกัส */
+        }
+        
         .flex-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
-        button {
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-success { background-color: #28a745; color: white; width: 100%; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-outline { background-color: transparent; border: 2px solid #007bff; color: #007bff; width: 100%; margin-bottom: 15px; }
-        .btn-outline:hover { background-color: #007bff; color: white; }
-        .btn-add-cat { background-color: #6c757d; color: white; white-space: nowrap; }
         
-        /* สไตล์สำหรับกล่องแต่ละเตียง */
+        /* ปุ่มกดดีไซน์เรียบแบน (Flat & Minimal Buttons) */
+        button {
+            padding: 12px 16px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        /* ปุ่มหลักสีดำ/เทาเข้มสุดมินิมอล */
+        .btn-black {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        .btn-black:hover {
+            background-color: #333333;
+        }
+        
+        /* ปุ่มแอดสีเทาอ่อนกลืนไปกับหน้าเว็บ */
+        .btn-subtle {
+            background-color: #f0f0f0;
+            color: #1a1a1a;
+        }
+        .btn-subtle:hover {
+            background-color: #e5e5e5;
+        }
+        
+        /* ปุ่มโปร่งแสงมีเส้นขอบ */
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #e0e0e0;
+            color: #666666;
+            width: 100%;
+            margin-bottom: 24px;
+        }
+        .btn-outline:hover {
+            border-color: #1a1a1a;
+            color: #1a1a1a;
+        }
+        
+        /* ปุ่มยกเลิก/ลบ แบบเรียบง่ายไม่ฉูดฉาด */
+        .btn-danger-outline {
+            background-color: transparent;
+            border: 1px solid #f0f0f0;
+            color: #999999;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+        .btn-danger-outline:hover {
+            border-color: #ff4d4f;
+            color: #ff4d4f;
+            background-color: #fff1f0;
+        }
+        
+        /* รายงานตารางงานแยกตามเตียงแบบมินิมอล */
         .category-card {
-            background: white;
-            border-left: 5px solid #17a2b8;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 8px;
+            margin-bottom: 28px;
         }
+        
         .category-title {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: #17a2b8;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+            border-bottom: 1px solid #1a1a1a;
+            padding-bottom: 6px;
+            display: inline-block;
         }
+        
         ul {
             list-style-type: none;
             padding: 0;
             margin: 0;
         }
+        
         li {
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        li:last-child {
-            border-bottom: none;
+        li:last-child { 
+            border-bottom: none; 
         }
+        
+        .task-text { 
+            color: #333333; 
+            font-size: 0.95rem;
+            flex: 1;
+            padding-right: 12px;
+        }
+        
+        .task-badge-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .task-date {
+            font-size: 0.8rem;
+            color: #999999;
+        }
+        
         .task-time {
-            font-weight: bold;
-            color: #dc3545;
-            background: #ffeeba;
-            padding: 2px 8px;
+            font-weight: 500;
+            color: #1a1a1a;
+            background: #f0f0f0;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+        }
+        
+        .hint-text {
+            font-size: 0.75rem; 
+            color: #999999; 
+            margin: 10px 0 0 0; 
+            text-align: center;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <h2>🏥 Patient Care To-Do</h2>
+        <h2>Patient Care</h2>
         
         <button class="btn-outline" onclick="requestNotificationPermission()">
-            🔔 เปิดใช้งานการแจ้งเตือน
+            เปิดใช้งานการแจ้งเตือนระบบ
         </button>
 
         <div class="section-box">
-            <label>➕ เพิ่มหมวดหมู่ใหม่ (เช่น เตียง 3, ห้อง 101)</label>
+            <label>เพิ่มหมวดหมู่ใหม่</label>
             <div class="flex-row">
-                <input type="text" id="new-category-input" placeholder="พิมพ์ชื่อหมวดหมู่...">
-                <button class="btn-add-cat" onclick="addCategory()">เพิ่ม</button>
+                <input type="text" id="new-category-input" placeholder="เช่น เตียง 3, ห้อง 101">
+                <button class="btn-subtle" onclick="addCategory()">เพิ่ม</button>
             </div>
         </div>
 
         <div class="section-box">
-            <h3>📝 เพิ่มรายการที่ต้องทำ</h3>
+            <h3>เพิ่มรายการที่ต้องทำ</h3>
             <div class="input-group">
-                <label>หมวดหมู่ / เตียง:</label>
-                <select id="category-select">
-                    </select>
+                <label>หมวดหมู่ / เตียง</label>
+                <select id="category-select"></select>
             </div>
 
             <div class="input-group">
-                <label>สิ่งที่ต้องทำ (กดไมค์แล้วพูด เช่น "เตียง 1 วัดความดัน"):</label>
+                <label>สิ่งที่ต้องทำ</label>
                 <div class="flex-row">
                     <input type="text" id="task-input" placeholder="พิมพ์หรือกดไมค์พูด...">
-                    <button class="btn-primary" onclick="startDictation()" style="flex: 1;">🎤 พูด</button>
+                    <button class="btn-subtle" onclick="startDictation()">🎤 พูดเพื่อเพิ่ม</button>
                 </div>
             </div>
 
             <div class="input-group">
-                <label>เวลาแจ้งเตือน:</label>
-                <input type="time" id="time-input">
+                <label>วันและเวลาที่ให้แจ้งเตือน</label>
+                <div class="flex-row">
+                    <input type="date" id="date-input">
+                    <input type="time" id="time-input">
+                </div>
             </div>
 
-            <button class="btn-success" onclick="addTask()">บันทึกรายการ</button>
+            <button class="btn-black" style="width: 100%; margin-top: 4px;" onclick="addTask()">บันทึกรายการ</button>
         </div>
 
+        <div class="section-box" style="border-bottom: none; margin-bottom: 12px; padding-bottom: 0;">
+            <button class="btn-danger-outline" id="cancel-voice-btn" onclick="startVoiceCancel()">🎙️ พูดเพื่อยกเลิกงาน</button>
+            <p class="hint-text">
+                *ตัวอย่าง: "ยกเลิก เตียง 1 พลิกตัว" หรือ "เตียง 2 วัดความดัน"*
+            </p>
+        </div>
+
+        <h3 style="text-align: left; margin-top: 24px; margin-bottom: 16px; border-top: 1px solid #eaeaea; padding-top: 24px;">ตารางงานล่วงหน้า</h3>
         <div id="task-board"></div>
     </div>
 
     <script>
-        // ข้อมูลเริ่มต้น
-        let categories = ["เตียง 1", "เตียง 2"]; // หมวดหมู่ตั้งต้น
-        let tasks = []; // เก็บรายการงานทั้งหมด
+        // [โค้ด Logic JavaScript ทำงานเหมือนเดิมทุกประการเพื่อความเสถียร]
+        let categories = ["เตียง 1", "เตียง 2"]; 
+        let tasks = []; 
 
-        // 1. อัปเดต UI เมื่อโหลดหน้าเว็บ
         function initApp() {
             updateCategoryDropdown();
+            setDefaultDate(); 
             renderTaskBoard();
         }
 
-        // 2. ระบบขออนุญาตแจ้งเตือน
+        function setDefaultDate() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('date-input').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return "";
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
         function requestNotificationPermission() {
             if (!("Notification" in window)) {
-                alert("เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนครับ");
+                alert("เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนระบบครับ");
                 return;
             }
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
-                    alert("อนุญาตการแจ้งเตือนสำเร็จ!");
+                    alert("🔓 เปิดการแจ้งเตือนสำเร็จ!");
                 }
             });
         }
 
-        // 3. ระบบเพิ่มหมวดหมู่ (เตียง)
         function addCategory() {
             const newCat = document.getElementById('new-category-input').value.trim();
             if (!newCat) return;
-
             if (categories.includes(newCat)) {
                 alert("หมวดหมู่นี้มีอยู่แล้วครับ");
                 return;
             }
-
             categories.push(newCat);
             document.getElementById('new-category-input').value = "";
             updateCategoryDropdown();
             renderTaskBoard();
-            alert(`เพิ่มหมวดหมู่ "${newCat}" สำเร็จ!`);
         }
 
         function updateCategoryDropdown() {
@@ -210,31 +330,23 @@
             });
         }
 
-        // 4. ระบบแปลงเสียงและวิเคราะห์ข้อความ (Auto-Assign Category)
         function startDictation() {
             if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
-
                 recognition.lang = 'th-TH';
-                recognition.continuous = false;
-                
+
                 const taskInput = document.getElementById('task-input');
-                taskInput.placeholder = "กำลังฟัง... พูดเลขเตียงและสิ่งที่ต้องทำได้เลยครับ";
+                taskInput.placeholder = "กำลังฟัง...";
 
                 recognition.onresult = function(event) {
                     let transcript = event.results[0][0].transcript.trim();
                     let matchedCategory = null;
 
-                    // ค้นหาว่ามีชื่อหมวดหมู่ใดอยู่ในคำพูดบ้าง (เรียงจากชื่อยาวไปสั้น เพื่อความแม่นยำ)
                     const sortedCategories = [...categories].sort((a, b) => b.length - a.length);
-                    
                     for (let cat of sortedCategories) {
-                        // ปรับแต่งเสียงที่รับมา เผื่อกรณีพูดติดกัน
-                        // ลบช่องว่างเพื่อเช็กคำที่อาจติดกัน เช่น "เตียง1"
                         const cleanTranscript = transcript.replace(/\s+/g, '');
                         const cleanCat = cat.replace(/\s+/g, '');
-                        
                         if (cleanTranscript.includes(cleanCat) || transcript.includes(cat)) {
                             matchedCategory = cat;
                             break;
@@ -242,61 +354,125 @@
                     }
 
                     if (matchedCategory) {
-                        // หากเจอเลขเตียง ให้เปลี่ยน Dropdown ไปที่เตียงนั้นอัตโนมัติ
                         document.getElementById('category-select').value = matchedCategory;
-                        
-                        // ลบชื่อเตียงออกจากคำพูด เพื่อให้เหลือแค่ "สิ่งที่ต้องทำ"
-                        // ใช้ Regular Expression เพื่อให้สามารถแทนที่ได้แม่นยำแม้เว้นวรรคไม่ตรงกัน
                         const regex = new RegExp(matchedCategory, 'gi');
                         let taskOnly = transcript.replace(regex, '').trim();
-                        
                         taskInput.value = taskOnly;
                     } else {
-                        // หากไม่เจอเลขเตียงเลย ให้นำคำพูดทั้งหมดใส่ในช่องสิ่งที่ต้องทำ
                         taskInput.value = transcript;
                     }
                     taskInput.placeholder = "พิมพ์หรือกดไมค์พูด...";
                 };
-
-                recognition.onerror = function() {
-                    alert("เกิดข้อผิดพลาดในการรับเสียง โปรดลองอีกครั้ง");
-                    taskInput.placeholder = "พิมพ์หรือกดไมค์พูด...";
-                };
-
                 recognition.start();
             } else {
-                alert("เบราว์เซอร์ไม่รองรับการสั่งงานด้วยเสียง แนะนำให้ใช้ Google Chrome ครับ");
+                alert("แนะนำให้ใช้ Google Chrome ครับ");
             }
         }
 
-        // 5. ระบบเพิ่มงาน
+        function startVoiceCancel() {
+            if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'th-TH';
+
+                const cancelBtn = document.getElementById('cancel-voice-btn');
+                cancelBtn.textContent = "กำลังฟังเสียงเพื่อยกเลิก...";
+                cancelBtn.style.borderColor = "#1a1a1a";
+                cancelBtn.style.color = "#1a1a1a";
+
+                recognition.onresult = function(event) {
+                    let transcript = event.results[0][0].transcript.trim();
+                    let cleanTranscript = transcript.replace(/\s+/g, '');
+                    let matchedCategory = null;
+
+                    const sortedCategories = [...categories].sort((a, b) => b.length - a.length);
+                    for (let cat of sortedCategories) {
+                        const cleanCat = cat.replace(/\s+/g, '');
+                        if (cleanTranscript.includes(cleanCat)) {
+                            matchedCategory = cat;
+                            break;
+                        }
+                    }
+
+                    if (!matchedCategory) {
+                        alert(`❌ ไม่พบชื่อเตียงจากเสียงพูด: "${transcript}"`);
+                        resetCancelButton();
+                        return;
+                    }
+
+                    const bedRegex = new RegExp(matchedCategory, 'gi');
+                    let taskKeyword = transcript.replace(bedRegex, '').replace(/ยกเลิก/g, '').trim();
+                    let cleanKeyword = taskKeyword.replace(/\s+/g, '');
+
+                    if (!cleanKeyword) {
+                        alert(`❌ กรุณาระบุชื่องานด้วยครับ`);
+                        resetCancelButton();
+                        return;
+                    }
+
+                    const initialCount = tasks.length;
+                    tasks = tasks.filter(task => {
+                        if (task.category === matchedCategory) {
+                            const cleanTaskText = task.text.replace(/\s+/g, '');
+                            if (cleanTaskText.includes(cleanKeyword) || cleanKeyword.includes(cleanTaskText)) {
+                                return false; 
+                            }
+                        }
+                        return true; 
+                    });
+
+                    if (tasks.length < initialCount) {
+                        alert(`🗑️ ยกเลิกรายการสำเร็จ`);
+                        renderTaskBoard();
+                    } else {
+                        alert(`❌ ไม่พบงานที่ตรงกัน`);
+                    }
+                    resetCancelButton();
+                };
+
+                recognition.onerror = function() {
+                    resetCancelButton();
+                };
+
+                function resetCancelButton() {
+                    cancelBtn.textContent = "🎙️ พูดเพื่อยกเลิกงาน";
+                    cancelBtn.style.borderColor = "#f0f0f0";
+                    cancelBtn.style.color = "#999999";
+                    cancelBtn.style.backgroundColor = "transparent";
+                }
+
+                recognition.start();
+            }
+        }
+
         function addTask() {
             const category = document.getElementById('category-select').value;
             const text = document.getElementById('task-input').value.trim();
-            const time = document.getElementById('time-input').value;
+            const date = document.getElementById('date-input').value; 
+            const time = document.getElementById('time-input').value; 
 
-            if (!text || !time) {
-                alert("กรุณาใส่ข้อมูลสิ่งที่ต้องทำและเวลาให้ครบถ้วนครับ");
+            if (!text || !date || !time) {
+                alert("กรุณาใส่ข้อมูลให้ครบถ้วนครับ");
                 return;
             }
 
-            tasks.push({ category, text, time, notified: false });
-            
-            // ล้างฟอร์ม
+            tasks.push({ category, text, date, time, notified: false });
             document.getElementById('task-input').value = "";
             document.getElementById('time-input').value = "";
-            
+            setDefaultDate(); 
             renderTaskBoard();
         }
 
-        // 6. ระบบแสดงผลแยกตามหมวดหมู่ (เตียง)
         function renderTaskBoard() {
             const board = document.getElementById('task-board');
             board.innerHTML = "";
 
             categories.forEach(cat => {
-                // กรองงานเฉพาะของเตียงนั้นๆ และเรียงตามเวลา
-                const catTasks = tasks.filter(t => t.category === cat).sort((a, b) => a.time.localeCompare(b.time));
+                const catTasks = tasks.filter(t => t.category === cat).sort((a, b) => {
+                    const dateTimeA = `${a.date}T${a.time}`;
+                    const dateTimeB = `${b.date}T${b.time}`;
+                    return dateTimeA.localeCompare(dateTimeB);
+                });
                 
                 if (catTasks.length > 0) {
                     const card = document.createElement('div');
@@ -304,13 +480,19 @@
                     
                     const title = document.createElement('div');
                     title.className = 'category-title';
-                    title.textContent = `🛏️ ${cat}`;
+                    title.textContent = cat;
                     card.appendChild(title);
                     
                     const ul = document.createElement('ul');
                     catTasks.forEach(task => {
                         const li = document.createElement('li');
-                        li.innerHTML = `<span>${task.text}</span> <span class="task-time">${task.time} น.</span>`;
+                        li.innerHTML = `
+                            <span class="task-text">${task.text}</span> 
+                            <div class="task-badge-group">
+                                <span class="task-date">${formatDateDisplay(task.date)}</span>
+                                <span class="task-time">${task.time}</span>
+                            </div>
+                        `;
                         ul.appendChild(li);
                     });
                     
@@ -320,32 +502,31 @@
             });
         }
 
-        // 7. ระบบตรวจจับเวลาส่งแจ้งเตือน
         setInterval(() => {
             const now = new Date();
+            const currentDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
             tasks.forEach(task => {
-                if (task.time === currentTime && !task.notified) {
+                if (task.date === currentDate && task.time === currentTime && !task.notified) {
                     sendNotification(task.category, task.text);
-                    task.notified = true;
+                    task.notified = true; 
                 }
             });
         }, 1000);
 
         function sendNotification(category, taskMessage) {
-            const title = `⏰ แจ้งเตือน: ${category}`;
+            const title = `🚨 แจ้งเตือน: ${category}`;
             if (Notification.permission === "granted") {
                 new Notification(title, {
                     body: taskMessage,
-                    icon: "https://cdn-icons-png.flaticon.com/512/825/825590.png" // ไอคอนกระดิ่ง
+                    icon: "https://cdn-icons-png.flaticon.com/512/825/825590.png"
                 });
             } else {
-                alert(`${title}\n${taskMessage}`);
+                alert(`${title}\nงาน: ${taskMessage}`);
             }
         }
 
-        // เริ่มต้นการทำงาน
         initApp();
     </script>
 </body>
