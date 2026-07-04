@@ -255,7 +255,7 @@
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
                     // ⚠️ ใส่ VAPID KEY ของคุณตรงนี้
-                    const currentToken = await messaging.getToken({ vapidKey: 'BIm3lpIV2EO0GKCC4Aul_8bTvz0Js5eLb1OX3D6q7sdEfx7n788CNowmedhLPtD_UhlaDDYfrhdvDGi1OpMMaj8' });
+                    const currentToken = await messaging.getToken({ vapidKey: 'BMTaift-oTu6ogzQpcoGr1MFcL2pNnFQDcCXXoK736E2ClLVa3jhaA0J_-nr8N6Ef6tsPP5W_-BQNrrmUeoX4_Q' });
                     if (currentToken) {
                         console.log("FCM Token:", currentToken);
                         // ถ้าล็อกอินอยู่ เอา Token ไปบันทึกในฐานข้อมูลเพื่อให้ Server รู้ว่าต้องยิงไปเครื่องไหน
