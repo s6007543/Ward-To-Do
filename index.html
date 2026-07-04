@@ -258,15 +258,15 @@
             } else {
                 currentUser = null;
                 if (cloudUnsubscribe) cloudUnsubscribe(); // หยุดดักฟังคลาวด์เมื่อออกระบบ
-                document.getElementById('auth-status-text').textContent = `👤 ใช้งานแบบออฟไลน์ (ข้อมูลไม่ซิงค์)`;
-                document.getElementById('btn-auth-action').textContent = "เชื่อมต่อ Google";
+                const firebaseConfig = {
                 apiKey: "AIzaSyAIrzHNEZ1p9IP_RY8vX-3REyyjeVtGofY",
-                authDomain: "ward-to-do.firebaseapp.com",
-                projectId: "ward-to-do",
-                storageBucket: "ward-to-do.firebasestorage.app",
-                messagingSenderId: "359480025254",
-                appId: "1:359480025254:web:1c9250d8fc9e0abaae5467",
-                measurementId: "G-18C6TF6E6E"
+                authDomain: "ward-to-do.firebaseapp.com",
+                projectId: "ward-to-do",
+                storageBucket: "ward-to-do.firebasestorage.app",
+                messagingSenderId: "359480025254",
+                appId: "1:359480025254:web:1c9250d8fc9e0abaae5467",
+                measurementId: "G-18C6TF6E6E"
+                };
                 // ใช้ข้อมูลออฟไลน์จาก LocalStorage สำรองตามเดิม
                 const localCat = localStorage.getItem('local_categories');
                 const localTasks = localStorage.getItem('local_tasks');
