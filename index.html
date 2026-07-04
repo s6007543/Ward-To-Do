@@ -243,36 +243,33 @@
 
         // --- ฟังก์ชันขอสิทธิ์ Web Push และดึง FCM Token ---
         async function requestNotificationPermission() {
-            const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-            const isStandalone = ('standalone' in window.navigator) && window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-            
-            if (isIos && !isStandalone) {
-                alert("🚨 สำหรับ iPhone / iPad:\nกรุณากดปุ่ม 📤 (Share/แชร์) ด้านล่าง\nแล้วเลือก ➕ 'เพิ่มไปยังหน้าจอโฮม' (Add to Home Screen) ก่อนครับ\n\nจากนั้นให้เปิดแอปจากหน้าจอหลัก ถึงจะรับการแจ้งเตือน Web Push ได้ครับ");
-                return;
-            }
+    try {
+        // 1. ขอสิทธิ์เบื้องต้น
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') throw new Error("ผู้ใช้ปฏิเสธการแจ้งเตือน");
 
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    // ⚠️ ใส่ VAPID KEY ของคุณตรงนี้
-                    const currentToken = await messaging.getToken({ vapidKey: 'BMTaift-oTu6ogzQpcoGr1MFcL2pNnFQDcCXXoK736E2ClLVa3jhaA0J_-nr8N6Ef6tsPP5W_-BQNrrmUeoX4_Q' });
-                    if (currentToken) {
-                        console.log("FCM Token:", currentToken);
-                        // ถ้าล็อกอินอยู่ เอา Token ไปบันทึกในฐานข้อมูลเพื่อให้ Server รู้ว่าต้องยิงไปเครื่องไหน
-                        if (currentUser) {
-                            db.collection("patient_data").doc(currentUser.uid).set({ fcmToken: currentToken }, { merge: true });
-                        }
-                        alert("🔓 เปิดการแจ้งเตือน Web Push สำเร็จ!\nแอปสามารถรับข้อความเบื้องหลังได้แล้วครับ");
-                    } else {
-                        alert("ไม่สามารถสร้าง Token ได้ โปรดตรวจสอบการตั้งค่า");
-                    }
-                } else {
-                    alert("การแจ้งเตือนถูกปฏิเสธ");
-                }
-            } catch (err) {
-                console.error('An error occurred while retrieving token. ', err);
-                alert("เกิดข้อผิดพลาดในการเปิด Web Push");
-            }
+        // 2. ลงทะเบียน Service Worker ให้ชัดเจน
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        console.log("Service Worker registered:", registration);
+
+        // 3. ขอ Token โดยระบุ registration ลงไปด้วย
+        const currentToken = await messaging.getToken({ 
+            vapidKey: 'ใส่_VAPID_KEY_ตัวใหม่ที่สร้างจาก_Firebase_Console_ตรงนี้', 
+            serviceWorkerRegistration: registration 
+        });
+
+        if (currentToken) {
+            console.log("FCM Token:", currentToken);
+            alert("✅ สำเร็จ! Web Push ทำงานได้แล้ว");
+        } else {
+            throw new Error("ไม่สามารถสร้าง Token ได้ (เกิดจาก VAPID Key ผิดหรือโปรเจกต์ไม่ได้เปิดใช้งาน FCM)");
+        }
+    } catch (err) {
+        console.error("รายละเอียด Error:", err);
+        // แสดง Error ออกมาเป็นข้อความให้รู้สาเหตุ
+        alert("❌ Error: " + err.code + " / " + err.message);
+    }
+}
         }
 
         // รับแจ้งเตือนตอนเปิดแอปทิ้งไว้ (Foreground Message)
