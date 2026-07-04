@@ -108,23 +108,36 @@
         .btn-danger-outline { background-color: transparent; border: 1px solid #f0f0f0; color: #999999; width: 100%; font-size: 0.85rem; }
         .btn-danger-outline:hover { border-color: #ff4d4f; color: #ff4d4f; background-color: #fff1f0; }
         
-        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 30px; }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; min-height: 35px; }
         
-        /* สไตล์ปุ่มชิปแบบป้องกันการเลือกข้อความซ้อนบนมือถือ */
+        /* 🍎 ปรับปรุงสไตล์ชิปแบบแยกส่วนสัมผัสเพื่อความเสถียรบน iPhone */
         .category-chip { 
+            display: inline-flex;
+            align-items: center;
             background-color: #f5f5f5; 
-            padding: 6px 12px; 
             border-radius: 16px; 
-            font-size: 0.8rem; 
+            font-size: 0.85rem; 
             color: #333; 
-            cursor: pointer; 
             border: 1px solid #e5e5e5; 
             user-select: none; 
             -webkit-user-select: none;
-            touch-action: manipulation; /* ป้องกันการซูมหน้าจอดับเบิลแท็ปของ iOS Safari */
+            touch-action: manipulation;
+            overflow: hidden;
         }
-        .category-chip:hover { background-color: #e0e0e0; }
-        .category-chip .edit-mark { color: #999; margin-left: 4px; font-size: 0.75rem; }
+        .chip-text-btn {
+            padding: 6px 4px 6px 12px;
+            cursor: pointer;
+        }
+        .chip-text-btn:active { background-color: #e5e5e5; }
+        
+        .chip-edit-btn {
+            padding: 6px 12px 6px 6px;
+            color: #999;
+            cursor: pointer;
+            border-left: 1px solid #e5e5e5;
+            font-size: 0.75rem;
+        }
+        .chip-edit-btn:active { background-color: #e5e5e5; color: #1a1a1a; }
 
         .category-card { margin-bottom: 28px; }
         .category-title { font-weight: 600; font-size: 0.95rem; color: #1a1a1a; margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 6px; display: inline-block; }
@@ -158,7 +171,7 @@
         </button>
 
         <div class="section-box">
-            <label>จัดการหมวดหมู่ (คลิกเลือก / ดับเบิลคลิกเพื่อแก้ไขชื่อ)</label>
+            <label>จัดการหมวดหมู่ (คลิกชื่อเพื่อเลือก / คลิก ✏️ เพื่อแก้ไขชื่อ)</label>
             <div class="flex-row">
                 <input type="text" id="new-category-input" placeholder="เพิ่มหมวดหมู่ใหม่ เช่น เตียง 3">
                 <button class="btn-subtle" onclick="addCategory()">เพิ่ม</button>
@@ -222,17 +235,15 @@
                 if (localCat) categories = JSON.parse(localCat);
                 if (localTasks) tasks = JSON.parse(localTasks);
             } catch(e) {
-                console.error("การโหลดความจำเครื่องขัดข้อง", e);
+                console.error("การโหลดข้อมูลขัดข้อง", e);
             }
 
-            // 🛡️ Data Recovery Guard: ป้องกันปุ่มหายตัวแบบเด็ดขาด
+            // 🛡️ Data Recovery Guard: ตรวจจับและกู้คืนปุ่มหายอัตโนมัติ หายค้างแน่นอน
             if (!categories || !Array.isArray(categories) || categories.length === 0) {
                 categories = ["เตียง 1", "เตียง 2"];
                 saveToDevice();
             }
-            if (!tasks || !Array.isArray(tasks)) {
-                tasks = [];
-            }
+            if (!tasks || !Array.isArray(tasks)) { tasks = []; }
 
             updateCategoryDropdown();
             renderCategoryChips(); 
@@ -310,7 +321,7 @@
             });
         }
 
-        // 🛠️ แก้ไขเรียบร้อย: เปลี่ยนมาใช้ระบบนับความเร็วการกดด้วยมิลลิวินาที (Custom Click Timer) เพื่อรองรับ iPhone Safari 100%
+        // 🛠️ แก้ไขเสร็จสมบูรณ์: แยกปุ่ม text และปุ่มดินสอออกจากกัน แก้ปัญหาระบบ iOS PWA บล็อกโค้ดค้างยาวหายขาด
         function renderCategoryChips() {
             const zone = document.getElementById('category-chips-zone');
             zone.innerHTML = "";
@@ -320,29 +331,25 @@
             categories.forEach(cat => {
                 const chip = document.createElement('div');
                 chip.className = 'category-chip';
-                chip.innerHTML = `${cat} <span class="edit-mark">✏️</span>`;
                 
-                let lastClick = 0;
-                let clickTimeout;
-                const delay = 300; // กำหนดความเร็วสูงสุดของการกด 2 ครั้งติดกัน (300 มิลลิวินาที)
+                // สร้างส่วนตัวหนังสือ สำหรับคลิก 1 ครั้งเพื่อเลือกหมวดหมู่
+                const textBtn = document.createElement('div');
+                textBtn.className = 'chip-text-btn';
+                textBtn.textContent = cat;
+                textBtn.onclick = function() {
+                    document.getElementById('category-select').value = cat;
+                };
 
-                chip.addEventListener('click', function(e) {
-                    const currentTime = Date.now();
-                    const timeDiff = currentTime - lastClick;
+                // สร้างส่วนไอคอนรูปดินสอ สำหรับคลิก 1 ครั้งเพื่อแก้ไขชื่อ
+                const editBtn = document.createElement('div');
+                editBtn.className = 'chip-edit-btn';
+                editBtn.innerHTML = "✏️";
+                editBtn.onclick = function() {
+                    renameCategory(cat);
+                };
 
-                    if (timeDiff < delay && timeDiff > 0) {
-                        // 2. ดับเบิลคลิกสำเร็จ: สั่งเปลี่ยนชื่อทันที และยกเลิกคำสั่งคลิกครั้งแรก
-                        clearTimeout(clickTimeout);
-                        renameCategory(cat);
-                    } else {
-                        // 1. คลิกครั้งแรก: หน่วงเวลาไว้ 0.3 วินาทีเพื่อดูว่าผู้ใช้จะกดเบิ้ลไหม ถ้าไม่เบิ้ลให้เลือกหมวดหมู่
-                        clickTimeout = setTimeout(function() {
-                            document.getElementById('category-select').value = cat;
-                        }, delay);
-                    }
-                    lastClick = currentTime;
-                });
-                
+                chip.appendChild(textBtn);
+                chip.appendChild(editBtn);
                 zone.appendChild(chip);
             });
         }
@@ -625,4 +632,5 @@
         initApp();
     </script>
 </body>
+</html>
 </html>
