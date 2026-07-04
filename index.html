@@ -2,8 +2,19 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Care — Smart Minimal To-Do</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Patient Care</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Patient Care">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/825/825590.png">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiUGF0aWVudCBDYXJlIiwic2hvcnRfbmFtZSI6IlBhdGllbnQgQ2FyZSIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwic3RhcnRfdXJsIjoiLiIsImljb25zIjpbeyJzcmMiOiJodHRwczovL2Nkbi1pY29ucy1wbmcuZmxhdGljb24uY29tLzUxMi84MjUvODI1NTkwLnBuZyIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -75,27 +86,10 @@
             transition: all 0.2s;
         }
         
-        input:focus, select:focus {
-            outline: none;
-            border-color: #1a1a1a;
-        }
-        
-        .edit-highlight {
-            border-color: #007bff !important;
-            background-color: #fbfdff !important;
-        }
-        
-        .flex-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .time-control-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            width: 100%;
-        }
+        input:focus, select:focus { outline: none; border-color: #1a1a1a; }
+        .edit-highlight { border-color: #007bff !important; background-color: #fbfdff !important; }
+        .flex-row { display: flex; gap: 8px; }
+        .time-control-group { display: flex; align-items: center; gap: 4px; width: 100%; }
         
         button {
             padding: 12px 16px;
@@ -107,166 +101,49 @@
             transition: all 0.2s ease;
         }
         
-        .btn-black {
-            background-color: #1a1a1a;
-            color: #ffffff;
-        }
-        .btn-black:hover {
-            background-color: #333333;
-        }
+        .btn-black { background-color: #1a1a1a; color: #ffffff; }
+        .btn-black:hover { background-color: #333333; }
+        .btn-subtle { background-color: #f0f0f0; color: #1a1a1a; }
+        .btn-subtle:hover { background-color: #e5e5e5; }
+        .btn-time-adj { padding: 12px 10px; background-color: #f5f5f5; color: #333; font-size: 0.8rem; font-family: monospace; white-space: nowrap; }
         
-        .btn-subtle {
-            background-color: #f0f0f0;
-            color: #1a1a1a;
-        }
-        .btn-subtle:hover {
-            background-color: #e5e5e5;
-        }
-
-        .btn-time-adj {
-            padding: 12px 10px;
-            background-color: #f5f5f5;
-            color: #333;
-            font-size: 0.8rem;
-            font-family: monospace;
-            white-space: nowrap;
-        }
-        .btn-time-adj:hover {
-            background-color: #e0e0e0;
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid #e0e0e0;
-            color: #666666;
-            width: 100%;
-            margin-bottom: 24px;
-        }
-        .btn-outline:hover {
-            border-color: #1a1a1a;
-            color: #1a1a1a;
-        }
-        
-        .btn-danger-outline {
-            background-color: transparent;
-            border: 1px solid #f0f0f0;
-            color: #999999;
-            width: 100%;
-            font-size: 0.85rem;
-        }
-        .btn-danger-outline:hover {
-            border-color: #ff4d4f;
-            color: #ff4d4f;
-            background-color: #fff1f0;
-        }
-        
-        /* สไตล์ปุ่มชิปสำหรับหมวดหมู่ */
-        .chips-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-        }
-        .category-chip {
-            background-color: #f5f5f5;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #e5e5e5;
-        }
-        .category-chip:hover {
-            background-color: #e0e0e0;
-            border-color: #ccc;
-        }
-        .category-chip .edit-mark {
-            color: #999;
-            margin-left: 4px;
-            font-size: 0.75rem;
-        }
-
-        .category-card {
-            margin-bottom: 28px;
-        }
-        
-        .category-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #1a1a1a;
-            margin-bottom: 12px;
-            letter-spacing: 0.02em;
-            border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 6px;
-            display: inline-block;
-        }
-        
-        ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        li {
-            padding: 12px 0;
-            border-bottom: 1px solid #f5f5f5;
+        /* สไตล์โซน Google Account (มินิมอล) */
+        .auth-box {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background-color: #fcfcfc;
+            border: 1px dashed #e0e0e0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
         }
-        li:last-child { 
-            border-bottom: none; 
-        }
+        .btn-google { background-color: #ffffff; border: 1px solid #e0e0e0; color: #333; font-size: 0.8rem; padding: 8px 12px;}
+        .btn-google:hover { background-color: #f5f5f5; border-color: #999; }
         
-        .task-text { 
-            color: #333333; 
-            font-size: 0.95rem;
-            flex: 1;
-            padding-right: 12px;
-        }
+        .btn-outline { background-color: transparent; border: 1px solid #e0e0e0; color: #666666; width: 100%; margin-bottom: 24px; }
+        .btn-outline:hover { border-color: #1a1a1a; color: #1a1a1a; }
+        .btn-danger-outline { background-color: transparent; border: 1px solid #f0f0f0; color: #999999; width: 100%; font-size: 0.85rem; }
+        .btn-danger-outline:hover { border-color: #ff4d4f; color: #ff4d4f; background-color: #fff1f0; }
         
-        .task-badge-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .task-date {
-            font-size: 0.8rem;
-            color: #999999;
-        }
-        
-        .task-time {
-            font-weight: 500;
-            color: #1a1a1a;
-            background: #f0f0f0;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .category-chip { background-color: #f5f5f5; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; color: #333; cursor: pointer; border: 1px solid #e5e5e5; }
+        .category-chip:hover { background-color: #e0e0e0; }
+        .category-chip .edit-mark { color: #999; margin-left: 4px; font-size: 0.75rem; }
 
-        .btn-edit {
-            font-size: 0.8rem;
-            color: #007bff;
-            cursor: pointer;
-            text-decoration: none;
-            margin-right: 4px;
-            background: none;
-            border: none;
-            padding: 0;
-        }
-        .btn-edit:hover {
-            text-decoration: underline;
-        }
-        
-        .hint-text {
-            font-size: 0.75rem; 
-            color: #999999; 
-            margin: 10px 0 0 0; 
-            text-align: center;
-            font-style: italic;
-        }
+        .category-card { margin-bottom: 28px; }
+        .category-title { font-weight: 600; font-size: 0.95rem; color: #1a1a1a; margin-bottom: 12px; border-bottom: 1px solid #1a1a1a; padding-bottom: 6px; display: inline-block; }
+        ul { list-style-type: none; padding: 0; margin: 0; }
+        li { padding: 12px 0; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
+        li:last-child { border-bottom: none; }
+        .task-text { color: #333333; font-size: 0.95rem; flex: 1; padding-right: 12px; }
+        .task-badge-group { display: flex; align-items: center; gap: 12px; }
+        .task-date { font-size: 0.8rem; color: #999999; }
+        .task-time { font-weight: 500; color: #1a1a1a; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+        .btn-edit { font-size: 0.8rem; color: #007bff; cursor: pointer; background: none; border: none; padding: 0; }
+        .btn-edit:hover { text-decoration: underline; }
+        .hint-text { font-size: 0.75rem; color: #999999; margin: 10px 0 0 0; text-align: center; font-style: italic; }
     </style>
 </head>
 <body>
@@ -274,6 +151,11 @@
     <div class="app-container">
         <h2>Patient Care</h2>
         
+        <div class="auth-box">
+            <span id="auth-status-text">👤 ใช้งานแบบออฟไลน์ (ข้อมูลไม่ซิงค์)</span>
+            <button class="btn-google" id="btn-auth-action" onclick="toggleLogin()">เชื่อมต่อ Google</button>
+        </div>
+
         <button class="btn-outline" onclick="requestNotificationPermission()">
             เปิดใช้งานการแจ้งเตือนระบบ
         </button>
@@ -330,53 +212,122 @@
     </div>
 
     <script>
+        // 🛠️ คัดลอกค่าจาก Firebase Console ของคุณมาวางทับตรงนี้
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // เริ่มต้นการทำงานของระบบคลาวด์ Google Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
         let categories = ["เตียง 1", "เตียง 2"]; 
         let tasks = []; 
         let editingTaskId = null; 
+        let currentUser = null;
+        let cloudUnsubscribe = null; // ตัวแปรสำหรับคอยฟังข้อมูลอัปเดตข้ามเครื่องล่วงหน้า
+
+        // 1. ระบบจัดการบัญชีผู้ใช้และดักฟังการซิงค์ข้อมูลเรียลไทม์ข้ามอุปกรณ์
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-status-text').textContent = `🟢 ซิงค์กับคลาวด์: ${user.displayName}`;
+                document.getElementById('btn-auth-action').textContent = "ออกจากระบบ";
+                
+                // สั่งให้ระบบคลาวด์คอยส่องดูข้อมูล: หากเครื่องอื่นมีการกดเพิ่ม/ลบ/แก้ไข เครื่องนี้จะเปลี่ยนตามทันทีใน 1 วินาที!
+                cloudUnsubscribe = db.collection("patient_data").doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        const cloudData = doc.data();
+                        categories = cloudData.categories || ["เตียง 1", "เตียง 2"];
+                        tasks = cloudData.tasks || [];
+                        updateCategoryDropdown();
+                        renderCategoryChips();
+                        renderTaskBoard();
+                    } else {
+                        // ถ้าบัญชีใหม่ยังไม่มีข้อมูลบนคลาวด์ ให้เอาข้อมูลออฟไลน์ปัจจุบันอัปขึ้นไปเริ่มตั้งต้น
+                        saveDataToCloud();
+                    }
+                });
+            } else {
+                currentUser = null;
+                if (cloudUnsubscribe) cloudUnsubscribe(); // หยุดดักฟังคลาวด์เมื่อออกระบบ
+                document.getElementById('auth-status-text').textContent = `👤 ใช้งานแบบออฟไลน์ (ข้อมูลไม่ซิงค์)`;
+                document.getElementById('btn-auth-action').textContent = "เชื่อมต่อ Google";
+                apiKey: "AIzaSyAIrzHNEZ1p9IP_RY8vX-3REyyjeVtGofY",
+                authDomain: "ward-to-do.firebaseapp.com",
+                projectId: "ward-to-do",
+                storageBucket: "ward-to-do.firebasestorage.app",
+                messagingSenderId: "359480025254",
+                appId: "1:359480025254:web:1c9250d8fc9e0abaae5467",
+                measurementId: "G-18C6TF6E6E"
+                // ใช้ข้อมูลออฟไลน์จาก LocalStorage สำรองตามเดิม
+                const localCat = localStorage.getItem('local_categories');
+                const localTasks = localStorage.getItem('local_tasks');
+                categories = localCat ? JSON.parse(localCat) : ["เตียง 1", "เตียง 2"];
+                tasks = localTasks ? JSON.parse(localTasks) : [];
+                initApp();
+            }
+        });
+
+        function toggleLogin() {
+            if (currentUser) {
+                if(confirm("ต้องการออกจากระบบและหยุดการซิงค์ข้อมูลใช่ไหมครับ?")) auth.signOut();
+            } else {
+                auth.signInWithRedirect(provider); // ใช้ Redirect เพื่อให้รองรับการทำงานในหน้าจอโฮม PWA ของ iPhone ได้ดีที่สุด
+            }
+        }
+
+        // ฟังก์ชันอัปเดตข้อมูลขึ้นคลาวด์ Google อัตโนมัติทุกครั้งที่มีการกดแก้ไขแอป
+        function saveDataToCloud() {
+            if (currentUser) {
+                db.collection("patient_data").doc(currentUser.uid).set({
+                    categories: categories,
+                    tasks: tasks
+                }).catch(err => console.error("Error saving to cloud:", err));
+            } else {
+                // สำรองข้อมูลลงเครื่องกรณีออฟไลน์
+                localStorage.setItem('local_categories', JSON.stringify(categories));
+                localStorage.setItem('local_tasks', JSON.stringify(tasks));
+            }
+        }
 
         function initApp() {
             updateCategoryDropdown();
-            renderCategoryChips(); // วาดปุ่มแก้ไขหมวดหมู่
+            renderCategoryChips(); 
             setDefaultDate(); 
             renderTaskBoard();
         }
 
         function setDefaultDate() {
             const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            document.getElementById('date-input').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('date-input').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
 
         function adjustTime(minutesToChange) {
             const timeInput = document.getElementById('time-input');
             let currentTimeVal = timeInput.value;
-            
             if (!currentTimeVal) {
                 const now = new Date();
                 currentTimeVal = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             }
-
             let [hours, minutes] = currentTimeVal.split(':').map(Number);
             let totalMinutes = (hours * 60) + minutes + minutesToChange;
-
             if (totalMinutes < 0) totalMinutes += 1440;
             if (totalMinutes >= 1440) totalMinutes -= 1440;
-
-            const newHours = Math.floor(totalMinutes / 60);
-            const newMinutes = totalMinutes % 60;
-
-            timeInput.value = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
+            timeInput.value = `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`;
         }
 
-        // ฟังก์ชันใหม่: แปลงคำพูดภาษาไทยที่เป็นตัวหนังสือให้เป็นตัวเลขปฏิทินเพื่อเพิ่มความแม่นยำในการจับคู่เตียง
         function normalizeThaiNumbers(text) {
             const thaiNumbers = { "หนึ่ง": "1", "สอง": "2", "สาม": "3", "สี่": "4", "ห้า": "5", "หก": "6", "เจ็ด": "7", "แปด": "8", "เก้า": "9", "ศูนย์": "0" };
             let normalized = text;
-            for (let word in thaiNumbers) {
-                normalized = normalized.replace(new RegExp(word, 'g'), thaiNumbers[word]);
-            }
+            for (let word in thaiNumbers) { normalized = normalized.replace(new RegExp(word, 'g'), thaiNumbers[word]); }
             return normalized;
         }
 
@@ -387,29 +338,26 @@
         }
 
         function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                alert("เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนระบบครับ");
+            const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+            const isStandalone = ('standalone' in window.navigator) && window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+            if (isIos && !isStandalone) {
+                alert("🚨 สำหรับ iPhone / iPad:\nกรุณากดปุ่ม 📤 (Share/แชร์) ด้านล่าง\nแล้วเลือก ➕ 'เพิ่มไปยังหน้าจอโฮม' (Add to Home Screen) ก่อนครับ\n\nจากนั้นให้เปิดแอปจากหน้าจอหลัก ถึงจะสามารถรับการแจ้งเตือนได้ครับ");
                 return;
             }
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    alert("🔓 เปิดการแจ้งเตือนสำเร็จ!");
-                }
-            });
+            if (!("Notification" in window)) { alert("เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือนระบบครับ"); return; }
+            Notification.requestPermission().then(permission => { if (permission === "granted") alert("🔓 เปิดการแจ้งเตือนสำเร็จ!"); });
         }
 
         function addCategory() {
             const newCat = document.getElementById('new-category-input').value.trim();
             if (!newCat) return;
-            if (categories.includes(newCat)) {
-                alert("หมวดหมู่นี้มีอยู่แล้วครับ");
-                return;
-            }
+            if (categories.includes(newCat)) { alert("หมวดหมู่นี้มีอยู่แล้วครับ"); return; }
             categories.push(newCat);
             document.getElementById('new-category-input').value = "";
             updateCategoryDropdown();
             renderCategoryChips();
             renderTaskBoard();
+            saveDataToCloud();
         }
 
         function updateCategoryDropdown() {
@@ -417,13 +365,10 @@
             select.innerHTML = "";
             categories.forEach(cat => {
                 const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                select.appendChild(option);
+                option.value = cat; option.textContent = cat; select.appendChild(option);
             });
         }
 
-        // ฟังก์ชันใหม่: แสดงผลปุ่มชิปและรับคำสั่งแก้ไขชื่อหมวดหมู่เดิม
         function renderCategoryChips() {
             const zone = document.getElementById('category-chips-zone');
             zone.innerHTML = "";
@@ -436,95 +381,57 @@
             });
         }
 
-        // ฟังก์ชันใหม่: เปลี่ยนชื่อหมวดหมู่และย้าย To-Do เก่าทั้งหมดตามมาด้วย
         function renameCategory(oldName) {
             const newName = prompt(`แก้ไขชื่อหมวดหมู่ "${oldName}" เป็น:`, oldName);
             if (!newName) return;
             const trimmedNewName = newName.trim();
             if (!trimmedNewName || trimmedNewName === oldName) return;
-
-            if (categories.includes(trimmedNewName)) {
-                alert("ชื่อหมวดหมู่นี้มีอยู่แล้วในระบบครับ");
-                return;
-            }
-
-            // 1. เปลี่ยนชื่อในอาร์เรย์หลัก
+            if (categories.includes(trimmedNewName)) { alert("ชื่อหมวดหมู่นี้มีอยู่แล้วในระบบครับ"); return; }
             const idx = categories.indexOf(oldName);
             if (idx > -1) categories[idx] = trimmedNewName;
-
-            // 2. ค้นหาและเปลี่ยนชื่อหมวดหมู่ในตารางงาน To-Do เก่าทั้งหมดที่ผูกไว้
-            tasks.forEach(task => {
-                if (task.category === oldName) {
-                    task.category = trimmedNewName;
-                }
-            });
-
-            // 3. รีเฟรชหน้าจอทั้งหมด
+            tasks.forEach(task => { if (task.category === oldName) task.category = trimmedNewName; });
             updateCategoryDropdown();
             renderCategoryChips();
             renderTaskBoard();
+            saveDataToCloud();
         }
 
-        // ปรับปรุง: พูดแล้วแยกเตียง+งาน เข้าหมวดหมู่อัตโนมัติ โดยไม่ต้องกดเลือกหมวดหมู่ก่อนพูด
         function startDictation() {
             if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
                 recognition.lang = 'th-TH';
-
                 const taskInput = document.getElementById('task-input');
                 taskInput.placeholder = "กำลังฟัง... พูดเลขเตียงและงานได้เลย";
-
                 recognition.onresult = function(event) {
                     let transcript = event.results[0][0].transcript.trim();
-                    let normalizedTranscript = normalizeThaiNumbers(transcript); // แปลงเสียง "เตียงหนึ่ง" -> "เตียง 1"
-                    
+                    let normalizedTranscript = normalizeThaiNumbers(transcript);
                     let matchedCategory = null;
-
-                    // ค้นหาหมวดหมู่ที่พูด โดยจัดลำดับความยาวชื่อยาวสุดก่อน เพื่อกันการสับสนคำ
                     const sortedCategories = [...categories].sort((a, b) => b.length - a.length);
                     for (let cat of sortedCategories) {
                         const cleanTranscript = transcript.replace(/\s+/g, '');
                         const cleanNormalized = normalizedTranscript.replace(/\s+/g, '');
                         const cleanCat = cat.replace(/\s+/g, '');
-                        
-                        // เช็กทั้งข้อความดิบ และข้อความที่แปลงตัวเลขแล้ว
                         if (cleanTranscript.includes(cleanCat) || transcript.includes(cat) || cleanNormalized.includes(cleanCat)) {
-                            matchedCategory = cat;
-                            break;
+                            matchedCategory = cat; break;
                         }
                     }
-
                     if (matchedCategory) {
-                        // เปลี่ยนค่าใน Dropdown ตามเตียงที่ระบุในคำพูดทันที
                         document.getElementById('category-select').value = matchedCategory;
-                        
-                        // ลบคำคีย์เวิร์ดของชื่อเตียงนั้นออกจากกล่อง "สิ่งที่ต้องทำ" เพื่อให้เหลือแค่งานล้วนๆ
-                        const regexStr = matchedCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // ป้องกันอักขระพิเศษพัง
+                        const regexStr = matchedCategory.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         const regex = new RegExp(regexStr, 'gi');
-                        
-                        // ลองตัดจากทั้งสองคำพูดเผื่อคำไหนเกลี้ยงที่สุด
                         let taskOnly = transcript.replace(regex, '').trim();
                         if (taskOnly === transcript) {
-                            // ถ้าลบด้วยคำดิบไม่หมด ลองแปลงข้อความแบบมีตัวเลขแล้วลบคำดู
                             const normCat = normalizeThaiNumbers(matchedCategory);
                             const regexNorm = new RegExp(normCat, 'gi');
                             taskOnly = normalizedTranscript.replace(regexNorm, '').trim();
                         }
-                        
-                        // ตัดคำว่า "เตียง" หลุดรอดกรณีพูดสลับตำแหน่ง
                         taskOnly = taskOnly.replace(/^เตียง\s*\d+\s*/g, '').trim();
-                        
                         taskInput.value = taskOnly;
-                    } else {
-                        // กรณีคำพูดไม่เข้าพวกกับเตียงใดๆ เลย ให้หย่อนลงกล่องข้อความทั้งหมดตามปกติ
-                        taskInput.value = transcript;
-                    }
+                    } else { taskInput.value = transcript; }
                     taskInput.placeholder = "พิมพ์หรือกดไมค์พูด...";
                 };
                 recognition.start();
-            } else {
-                alert("แนะนำให้ใช้ Google Chrome ครับ");
             }
         }
 
@@ -533,85 +440,26 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
                 recognition.lang = 'th-TH';
-
                 const btn = document.getElementById('btn-voice-datetime');
                 btn.textContent = "กำลังฟังวันและเวลา...";
-
                 recognition.onresult = function(event) {
                     let transcript = event.results[0][0].transcript.trim();
                     btn.textContent = "🎤 พูดตั้งวัน/เวลา";
-                    
-                    const now = new Date();
-                    let targetDate = new Date(now);
-                    let hours = now.getHours();
-                    let minutes = 0;
-
-                    if (transcript.includes("วันนี้")) {
-                    } else if (transcript.includes("พรุ่งนี้")) {
-                        targetDate.setDate(now.getDate() + 1);
-                    } else if (transcript.includes("มะรืน")) {
-                        targetDate.setDate(now.getDate() + 2);
-                    } else {
-                        const dateMatch = transcript.match(/วันที่\s*(\d+)/);
-                        if (dateMatch) targetDate.setDate(parseInt(dateMatch[1]));
-                    }
-
+                    const now = new Date(); let targetDate = new Date(now); let hours = now.getHours(); let minutes = 0;
+                    if (transcript.includes("วันนี้")) {} else if (transcript.includes("พรุ่งนี้")) { targetDate.setDate(now.getDate() + 1); } else if (transcript.includes("มะรืน")) { targetDate.setDate(now.getDate() + 2); } else { const dateMatch = transcript.match(/วันที่\s*(\d+)/); if (dateMatch) targetDate.setDate(parseInt(dateMatch[1])); }
                     const timeISO = transcript.match(/(\d{1,2})[:.\s](\d{2})/);
-                    if (timeISO) {
-                        hours = parseInt(timeISO[1]);
-                        minutes = parseInt(timeISO[2]);
-                    } else {
-                        const wordClock = transcript.match(/(\d+)\s*นาฬิกา/);
-                        const wordHour = transcript.match(/(\d+)\s*โมง/);
-                        const wordTee = transcript.match(/ตี\s*(\d+)/);
-                        const wordBaimong = transcript.match(/บ่าย\s*(\d+)/);
-                        
-                        if (wordClock) {
-                            hours = parseInt(wordClock[1]);
-                        } else if (wordHour) {
-                            hours = parseInt(wordHour[1]);
-                            if (transcript.includes("บ่าย") && hours < 12) hours += 12;
-                            if (transcript.includes("เย็น") && hours < 12) hours += 12;
-                        } else if (wordTee) {
-                            hours = parseInt(wordTee[1]);
-                        } else if (wordBaimong) {
-                            hours = parseInt(wordBaimong[1]) + 12;
-                        } else if (transcript.includes("ทุ่ม")) {
-                            const wordToom = transcript.match(/(\d+)\s*ทุ่ม/);
-                            hours = wordToom ? parseInt(wordToom[1]) + 18 : 19;
-                        }
-
-                        const wordMinute = transcript.match(/(\d+)\s*นาที/);
-                        if (wordMinute) {
-                            minutes = parseInt(wordMinute[1]);
-                        } else if (transcript.includes("ครึ่ง")) {
-                            minutes = 30;
-                        } else {
-                            const trailingNum = transcript.match(/(?:โมง|นาฬิกา|ทุ่ม|ตี)\s*(\d+)/);
-                            if (trailingNum) minutes = parseInt(trailingNum[1]);
-                        }
+                    if (timeISO) { hours = parseInt(timeISO[1]); minutes = parseInt(timeISO[2]); } else {
+                        const wordClock = transcript.match(/(\d+)\s*นาฬิกา/); const wordHour = transcript.match(/(\d+)\s*โมง/); const wordTee = transcript.match(/ตี\s*(\d+)/); const wordBaimong = transcript.match(/บ่าย\s*(\d+)/);
+                        if (wordClock) { hours = parseInt(wordClock[1]); } else if (wordHour) { hours = parseInt(wordHour[1]); if (transcript.includes("บ่าย") && hours < 12) hours += 12; if (transcript.includes("เย็น") && hours < 12) hours += 12; } else if (wordTee) { hours = parseInt(wordTee[1]); } else if (wordBaimong) { hours = parseInt(wordBaimong[1]) + 12; } else if (transcript.includes("ทุ่ม")) { const wordToom = transcript.match(/(\d+)\s*ทุ่ม/); hours = wordToom ? parseInt(wordToom[1]) + 18 : 19; }
+                        const wordMinute = transcript.match(/(\d+)\s*นาที/); if (wordMinute) { minutes = parseInt(wordMinute[1]); } else if (transcript.includes("ครึ่ง")) { minutes = 30; } else { const trailingNum = transcript.match(/(?:โมง|นาฬิกา|ทุ่ม|ตี)\s*(\d+)/); if (trailingNum) minutes = parseInt(trailingNum[1]); }
                     }
-
                     if (isNaN(hours) || hours < 0 || hours > 23) hours = now.getHours();
                     if (isNaN(minutes) || minutes < 0 || minutes > 59) minutes = 0;
-
-                    const yyyy = targetDate.getFullYear();
-                    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-                    const dd = String(targetDate.getDate()).padStart(2, '0');
-                    
-                    document.getElementById('date-input').value = `${yyyy}-${mm}-${dd}`;
-                    
-                    const timeInput = document.getElementById('time-input');
-                    timeInput.value = "";
-                    setTimeout(() => {
-                        timeInput.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                    }, 500);
+                    document.getElementById('date-input').value = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+                    const timeInput = document.getElementById('time-input'); timeInput.value = "";
+                    setTimeout(() => { timeInput.value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`; }, 50);
                 };
-
-                recognition.onerror = function() {
-                    btn.textContent = "🎤 พูดตั้งวัน/เวลา";
-                };
-
+                recognition.onerror = function() { btn.textContent = "🎤 พูดตั้งวัน/เวลา"; };
                 recognition.start();
             }
         }
@@ -621,60 +469,32 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
                 recognition.lang = 'th-TH';
-
                 const cancelBtn = document.getElementById('cancel-voice-btn');
                 cancelBtn.textContent = "กำลังฟังเสียงเพื่อยกเลิก...";
-
                 recognition.onresult = function(event) {
                     let transcript = event.results[0][0].transcript.trim();
                     let cleanTranscript = transcript.replace(/\s+/g, '');
                     let matchedCategory = null;
-
                     const sortedCategories = [...categories].sort((a, b) => b.length - a.length);
                     for (let cat of sortedCategories) {
-                        const cleanCat = cat.replace(/\s+/g, '');
-                        if (cleanTranscript.includes(cleanCat)) {
-                            matchedCategory = cat;
-                            break;
-                        }
+                        const cleanCat = cat.replace(/\s+/g, ''); if (cleanTranscript.includes(cleanCat)) { matchedCategory = cat; break; }
                     }
-
-                    if (!matchedCategory) {
-                        alert(`❌ ไม่พบชื่อเตียงจากเสียงพูด: "${transcript}"`);
-                        resetCancelButton();
-                        return;
-                    }
-
+                    if (!matchedCategory) { alert(`❌ ไม่พบชื่อเตียงจากเสียงพูด: "${transcript}"`); resetCancelButton(); return; }
                     const bedRegex = new RegExp(matchedCategory, 'gi');
                     let taskKeyword = transcript.replace(bedRegex, '').replace(/ยกเลิก/g, '').trim();
                     let cleanKeyword = taskKeyword.replace(/\s+/g, '');
-
-                    if (!cleanKeyword) {
-                        alert(`❌ กรุณาระบุชื่องานด้วยครับ`);
-                        resetCancelButton();
-                        return;
-                    }
-
+                    if (!cleanKeyword) { alert(`❌ กรุณาระบุชื่องานด้วยครับ`); resetCancelButton(); return; }
                     const initialCount = tasks.length;
                     tasks = tasks.filter(task => {
                         if (task.category === matchedCategory) {
                             const cleanTaskText = task.text.replace(/\s+/g, '');
-                            if (cleanTaskText.includes(cleanKeyword) || cleanKeyword.includes(cleanTaskText)) {
-                                return false; 
-                            }
+                            if (cleanTaskText.includes(cleanKeyword) || cleanKeyword.includes(cleanTaskText)) return false; 
                         }
                         return true; 
                     });
-
-                    if (tasks.length < initialCount) {
-                        alert(`🗑️ ยกเลิกรายการสำเร็จ`);
-                        renderTaskBoard();
-                    } else {
-                        alert(`❌ ไม่พบงานที่ตรงกัน`);
-                    }
+                    if (tasks.length < initialCount) { alert(`🗑️ ยกเลิกรายการสำเร็จ`); renderTaskBoard(); saveDataToCloud(); } else { alert(`❌ ไม่พบงานที่ตรงกัน`); }
                     resetCancelButton();
                 };
-
                 recognition.onerror = function() { resetCancelButton(); };
                 function resetCancelButton() { cancelBtn.textContent = "🎙️ พูดเพื่อยกเลิกงาน"; }
                 recognition.start();
@@ -686,89 +506,54 @@
             const text = document.getElementById('task-input').value.trim();
             const date = document.getElementById('date-input').value; 
             const time = document.getElementById('time-input').value; 
-
-            if (!text) {
-                alert("❌ บันทึกไม่ได้: กรุณากรอกข้อความในช่อง 'สิ่งที่ต้องทำ' ครับ");
-                return;
-            }
-            if (!date) {
-                alert("❌ บันทึกไม่ได้: กรุณาเลือก 'วันที่' ครับ");
-                return;
-            }
-            if (!time) {
-                alert("❌ บันทึกไม่ได้: กรุณากรอก 'เวลา' ให้ครบถ้วน ครับ");
-                return;
-            }
+            if (!text) { alert("❌ กรุณากรอกข้อความ 'สิ่งที่ต้องทำ' ครับ"); return; }
+            if (!date) { alert("❌ กรุณาเลือก 'วันที่' ครับ"); return; }
+            if (!time) { alert("❌ กรุณากรอก 'เวลา' ครับ"); return; }
 
             if (editingTaskId) {
                 const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
                 if (taskIndex > -1) {
-                    tasks[taskIndex].category = category;
-                    tasks[taskIndex].text = text;
-                    tasks[taskIndex].date = date;
-                    tasks[taskIndex].time = time;
-                    tasks[taskIndex].notified = false; 
+                    tasks[taskIndex].category = category; tasks[taskIndex].text = text; tasks[taskIndex].date = date; tasks[taskIndex].time = time; tasks[taskIndex].notified = false; 
                 }
                 editingTaskId = null;
                 document.getElementById('form-title').textContent = "เพิ่มรายการที่ต้องทำ";
                 document.getElementById('btn-submit-task').textContent = "บันทึกรายการ";
-                
                 document.getElementById('date-input').classList.remove('edit-highlight');
                 document.getElementById('time-input').classList.remove('edit-highlight');
             } else {
                 tasks.push({ id: Date.now().toString(), category, text, date, time, notified: false });
             }
-
             document.getElementById('task-input').value = "";
             document.getElementById('time-input').value = "";
-            setDefaultDate(); 
-            renderTaskBoard();
+            setDefaultDate(); renderTaskBoard();
+            saveDataToCloud(); // เซฟซิงค์ขึ้นสวรรค์ทันทีที่มีงานเพิ่ม
         }
 
         function editTask(id) {
-            const task = tasks.find(t => t.id === id);
-            if (!task) return;
-
+            const task = tasks.find(t => t.id === id); if (!task) return;
             document.getElementById('category-select').value = task.category;
             document.getElementById('task-input').value = task.text;
             document.getElementById('date-input').value = task.date;
-
-            const timeInput = document.getElementById('time-input');
-            timeInput.value = ""; 
-
+            const timeInput = document.getElementById('time-input'); timeInput.value = ""; 
             setTimeout(() => {
-                timeInput.value = task.time;
-                timeInput.classList.add('edit-highlight');
+                timeInput.value = task.time; timeInput.classList.add('edit-highlight');
                 document.getElementById('date-input').classList.add('edit-highlight');
             }, 50);
-
             editingTaskId = id;
             document.getElementById('form-title').textContent = "✍️ กำลังแก้ไขรายการ";
             document.getElementById('btn-submit-task').textContent = "💾 อัปเดตรายการที่แก้ไข";
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderTaskBoard() {
-            const board = document.getElementById('task-board');
-            board.innerHTML = "";
-
+            const board = document.getElementById('task-board'); board.innerHTML = "";
             categories.forEach(cat => {
                 const catTasks = tasks.filter(t => t.category === cat).sort((a, b) => {
-                    const dateTimeA = `${a.date}T${a.time}`;
-                    const dateTimeB = `${b.date}T${b.time}`;
-                    return dateTimeA.localeCompare(dateTimeB);
+                    return `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`);
                 });
-                
                 if (catTasks.length > 0) {
-                    const card = document.createElement('div');
-                    card.className = 'category-card';
-                    
-                    const title = document.createElement('div');
-                    title.className = 'category-title';
-                    title.textContent = cat;
-                    card.appendChild(title);
-                    
+                    const card = document.createElement('div'); card.className = 'category-card';
+                    const title = document.createElement('div'); title.className = 'category-title'; title.textContent = cat; card.appendChild(title);
                     const ul = document.createElement('ul');
                     catTasks.forEach(task => {
                         const li = document.createElement('li');
@@ -782,9 +567,7 @@
                         `;
                         ul.appendChild(li);
                     });
-                    
-                    card.appendChild(ul);
-                    board.appendChild(card);
+                    card.appendChild(ul); board.appendChild(card);
                 }
             });
         }
@@ -793,11 +576,9 @@
             const now = new Date();
             const currentDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
             tasks.forEach(task => {
                 if (task.date === currentDate && task.time === currentTime && !task.notified) {
-                    sendNotification(task.category, task.text);
-                    task.notified = true; 
+                    sendNotification(task.category, task.text); task.notified = true; saveDataToCloud();
                 }
             });
         }, 1000);
@@ -805,13 +586,8 @@
         function sendNotification(category, taskMessage) {
             const title = `🚨 แจ้งเตือน: ${category}`;
             if (Notification.permission === "granted") {
-                new Notification(title, {
-                    body: taskMessage,
-                    icon: "https://cdn-icons-png.flaticon.com/512/825/825590.png"
-                });
-            } else {
-                alert(`${title}\nงาน: ${taskMessage}`);
-            }
+                new Notification(title, { body: taskMessage, icon: "https://cdn-icons-png.flaticon.com/512/825/825590.png" });
+            } else { alert(`${title}\nงาน: ${taskMessage}`); }
         }
 
         initApp();
