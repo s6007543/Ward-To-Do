@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Care — Minimal To-Do</title>
+    <title>Patient Care — Smart Minimal To-Do</title>
     <style>
-        /* รีเซ็ตและตั้งค่าฟอนต์สไตล์ Minimal (Clean Sans-Serif) */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #fafafa;
@@ -16,7 +15,6 @@
             justify-content: center;
         }
         
-        /* กล่องหลัก ดีไซน์คลีน ขอบบาง ไร้เงาหนาทึบ */
         .app-container {
             background: #ffffff;
             width: 100%;
@@ -45,7 +43,6 @@
             color: #1a1a1a;
         }
         
-        /* เปลี่ยนจากกล่องพื้นหลังทึบ เป็นการแบ่งเส้นเบาๆ แทน */
         .section-box {
             margin-bottom: 28px;
             padding-bottom: 24px;
@@ -56,7 +53,6 @@
             margin-bottom: 16px;
         }
         
-        /* Label ตัวเล็ก เรียบร้อย สไตล์มินิมอล */
         label {
             display: block;
             margin-bottom: 8px;
@@ -67,7 +63,6 @@
             letter-spacing: 0.05em;
         }
         
-        /* ช่องกรอกข้อมูลสไตล์คลีน */
         input[type="text"], input[type="date"], input[type="time"], select {
             width: 100%;
             padding: 12px;
@@ -77,12 +72,12 @@
             font-size: 0.95rem;
             background-color: #ffffff;
             color: #1a1a1a;
-            transition: border-color 0.2s, background-color 0.2s;
+            transition: border-color 0.2s;
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: #1a1a1a; /* เปลี่ยนเป็นขอบเข้มเมื่อโฟกัส */
+            border-color: #1a1a1a;
         }
         
         .flex-row {
@@ -90,7 +85,6 @@
             gap: 8px;
         }
         
-        /* ปุ่มกดดีไซน์เรียบแบน (Flat & Minimal Buttons) */
         button {
             padding: 12px 16px;
             border: 1px solid transparent;
@@ -101,7 +95,6 @@
             transition: all 0.2s ease;
         }
         
-        /* ปุ่มหลักสีดำ/เทาเข้มสุดมินิมอล */
         .btn-black {
             background-color: #1a1a1a;
             color: #ffffff;
@@ -110,7 +103,6 @@
             background-color: #333333;
         }
         
-        /* ปุ่มแอดสีเทาอ่อนกลืนไปกับหน้าเว็บ */
         .btn-subtle {
             background-color: #f0f0f0;
             color: #1a1a1a;
@@ -119,7 +111,6 @@
             background-color: #e5e5e5;
         }
         
-        /* ปุ่มโปร่งแสงมีเส้นขอบ */
         .btn-outline {
             background-color: transparent;
             border: 1px solid #e0e0e0;
@@ -132,7 +123,6 @@
             color: #1a1a1a;
         }
         
-        /* ปุ่มยกเลิก/ลบ แบบเรียบง่ายไม่ฉูดฉาด */
         .btn-danger-outline {
             background-color: transparent;
             border: 1px solid #f0f0f0;
@@ -146,7 +136,6 @@
             background-color: #fff1f0;
         }
         
-        /* รายงานตารางงานแยกตามเตียงแบบมินิมอล */
         .category-card {
             margin-bottom: 28px;
         }
@@ -205,6 +194,21 @@
             border-radius: 4px;
             font-size: 0.8rem;
         }
+
+        /* ปุ่มแก้ไขดีไซน์มินิมอล */
+        .btn-edit {
+            font-size: 0.8rem;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            margin-right: 4px;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        .btn-edit:hover {
+            text-decoration: underline;
+        }
         
         .hint-text {
             font-size: 0.75rem; 
@@ -233,7 +237,7 @@
         </div>
 
         <div class="section-box">
-            <h3>เพิ่มรายการที่ต้องทำ</h3>
+            <h3 id="form-title">เพิ่มรายการที่ต้องทำ</h3>
             <div class="input-group">
                 <label>หมวดหมู่ / เตียง</label>
                 <select id="category-select"></select>
@@ -249,13 +253,14 @@
 
             <div class="input-group">
                 <label>วันและเวลาที่ให้แจ้งเตือน</label>
-                <div class="flex-row">
+                <div class="flex-row" style="margin-bottom: 8px;">
                     <input type="date" id="date-input">
                     <input type="time" id="time-input">
                 </div>
+                <button class="btn-subtle" style="width: 100%;" id="btn-voice-datetime" onclick="startDateTimeDictation()">🎤 พูดตั้งวัน/เวลา</button>
             </div>
 
-            <button class="btn-black" style="width: 100%; margin-top: 4px;" onclick="addTask()">บันทึกรายการ</button>
+            <button class="btn-black" id="btn-submit-task" style="width: 100%; margin-top: 4px;" onclick="addTask()">บันทึกรายการ</button>
         </div>
 
         <div class="section-box" style="border-bottom: none; margin-bottom: 12px; padding-bottom: 0;">
@@ -270,9 +275,9 @@
     </div>
 
     <script>
-        // [โค้ด Logic JavaScript ทำงานเหมือนเดิมทุกประการเพื่อความเสถียร]
         let categories = ["เตียง 1", "เตียง 2"]; 
         let tasks = []; 
+        let editingTaskId = null; // ตัวแปรเก็บ ID งานที่กำลังแก้ไขอยู่
 
         function initApp() {
             updateCategoryDropdown();
@@ -330,6 +335,7 @@
             });
         }
 
+        // พูดเพื่อเพิ่มสิ่งที่ต้องทำ
         function startDictation() {
             if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -369,6 +375,95 @@
             }
         }
 
+        // ฟังก์ชันเด่นใหม่: แปลงเสียงคำพูดภาษาไทยให้เป็น วันที่ และ เวลา ลงใน Input Form
+        function startDateTimeDictation() {
+            if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'th-TH';
+
+                const btn = document.getElementById('btn-voice-datetime');
+                btn.textContent = "กำลังฟังวันและเวลา...";
+
+                recognition.onresult = function(event) {
+                    let transcript = event.results[0][0].transcript.trim();
+                    btn.textContent = "🎤 พูดตั้งวัน/เวลา";
+                    
+                    const now = new Date();
+                    let targetDate = new Date(now);
+                    let hours = now.getHours();
+                    let minutes = 0;
+
+                    // 1. วิเคราะห์วันที่จากเสียงพูด
+                    if (transcript.includes("วันนี้")) {
+                        // คงเดิมเป็นวันนี้
+                    } else if (transcript.includes("พรุ่งนี้")) {
+                        targetDate.setDate(now.getDate() + 1);
+                    } else if (transcript.includes("มะรืน")) {
+                        targetDate.setDate(now.getDate() + 2);
+                    } else {
+                        const dateMatch = transcript.match(/วันที่\s*(\d+)/);
+                        if (dateMatch) targetDate.setDate(parseInt(dateMatch[1]));
+                    }
+
+                    // 2. วิเคราะห์เวลาจากเสียงพูด
+                    const timeISO = transcript.match(/(\d{1,2})[:.\s](\d{2})/);
+                    if (timeISO) {
+                        hours = parseInt(timeISO[1]);
+                        minutes = parseInt(timeISO[2]);
+                    } else {
+                        const wordClock = transcript.match(/(\d+)\s*นาฬิกา/);
+                        const wordHour = transcript.match(/(\d+)\s*โมง/);
+                        const wordTee = transcript.match(/ตี\s*(\d+)/);
+                        const wordBaimong = transcript.match(/บ่าย\s*(\d+)/);
+                        
+                        if (wordClock) {
+                            hours = parseInt(wordClock[1]);
+                        } else if (wordHour) {
+                            hours = parseInt(wordHour[1]);
+                            if (transcript.includes("บ่าย") && hours < 12) hours += 12;
+                            if (transcript.includes("เย็น") && hours < 12) hours += 12;
+                        } else if (wordTee) {
+                            hours = parseInt(wordTee[1]);
+                        } else if (wordBaimong) {
+                            hours = parseInt(wordBaimong[1]) + 12;
+                        } else if (transcript.includes("ทุ่ม")) {
+                            const wordToom = transcript.match(/(\d+)\s*ทุ่ม/);
+                            hours = wordToom ? parseInt(wordToom[1]) + 18 : 19;
+                        }
+
+                        // วิเคราะห์นาที
+                        const wordMinute = transcript.match(/(\d+)\s*นาที/);
+                        if (wordMinute) {
+                            minutes = parseInt(wordMinute[1]);
+                        } else if (transcript.includes("ครึ่ง")) {
+                            minutes = 30;
+                        } else {
+                            const trailingNum = transcript.match(/(?:โมง|นาฬิกา|ทุ่ม|ตี)\s*(\d+)/);
+                            if (trailingNum) minutes = parseInt(trailingNum[1]);
+                        }
+                    }
+
+                    // ส่งค่ากลับเข้าฟอร์ม UI
+                    const yyyy = targetDate.getFullYear();
+                    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(targetDate.getDate()).padStart(2, '0');
+                    
+                    document.getElementById('date-input').value = `${yyyy}-${mm}-${dd}`;
+                    document.getElementById('time-input').value = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                };
+
+                recognition.onerror = function() {
+                    btn.textContent = "🎤 พูดตั้งวัน/เวลา";
+                };
+
+                recognition.start();
+            } else {
+                alert("ระบบเสียงไม่รองรับบนเบราว์เซอร์นี้");
+            }
+        }
+
+        // พูดเพื่อยกเลิกงาน
         function startVoiceCancel() {
             if (window.hasOwnProperty('webkitSpeechRecognition') || window.hasOwnProperty('SpeechRecognition')) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -377,8 +472,6 @@
 
                 const cancelBtn = document.getElementById('cancel-voice-btn');
                 cancelBtn.textContent = "กำลังฟังเสียงเพื่อยกเลิก...";
-                cancelBtn.style.borderColor = "#1a1a1a";
-                cancelBtn.style.color = "#1a1a1a";
 
                 recognition.onresult = function(event) {
                     let transcript = event.results[0][0].transcript.trim();
@@ -430,21 +523,17 @@
                     resetCancelButton();
                 };
 
-                recognition.onerror = function() {
-                    resetCancelButton();
-                };
+                recognition.onerror = function() { resetCancelButton(); };
 
                 function resetCancelButton() {
                     cancelBtn.textContent = "🎙️ พูดเพื่อยกเลิกงาน";
-                    cancelBtn.style.borderColor = "#f0f0f0";
-                    cancelBtn.style.color = "#999999";
-                    cancelBtn.style.backgroundColor = "transparent";
                 }
 
                 recognition.start();
             }
         }
 
+        // เพิ่มหรือแก้ไขงาน
         function addTask() {
             const category = document.getElementById('category-select').value;
             const text = document.getElementById('task-input').value.trim();
@@ -456,11 +545,48 @@
                 return;
             }
 
-            tasks.push({ category, text, date, time, notified: false });
+            if (editingTaskId) {
+                // โหมดแก้ไข: อัปเดตข้อมูลตัวเดิมใน Array
+                const taskIndex = tasks.findIndex(t => t.id === editingTaskId);
+                if (taskIndex > -1) {
+                    tasks[taskIndex].category = category;
+                    tasks[taskIndex].text = text;
+                    tasks[taskIndex].date = date;
+                    tasks[taskIndex].time = time;
+                    tasks[taskIndex].notified = false; // รีเซ็ตการแจ้งเตือนเพื่อให้เตือนเวลาใหม่
+                }
+                editingTaskId = null;
+                document.getElementById('form-title').textContent = "เพิ่มรายการที่ต้องทำ";
+                document.getElementById('btn-submit-task').textContent = "บันทึกรายการ";
+            } else {
+                // โหมดปกติ: เพิ่มข้อมูลใหม่ลง Array โดยใส่ ID สุ่มไปด้วย
+                tasks.push({ id: Date.now().toString(), category, text, date, time, notified: false });
+            }
+
             document.getElementById('task-input').value = "";
             document.getElementById('time-input').value = "";
             setDefaultDate(); 
             renderTaskBoard();
+        }
+
+        // ฟังชันเด่นใหม่: ดึงข้อมูลงานเก่ามาแก้ไขเวลาและข้อมูลได้อย่างสมบูรณ์
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            // ส่งข้อมูลกลับไปแสดงผลบนฟอร์มด้านบน
+            document.getElementById('category-select').value = task.category;
+            document.getElementById('task-input').value = task.text;
+            document.getElementById('date-input').value = task.date;
+            document.getElementById('time-input').value = task.time;
+
+            // เปลี่ยนสถานะแอปให้อยู่ในโหมดแก้ไขงานชิ้นนี้
+            editingTaskId = id;
+            document.getElementById('form-title').textContent = "✍️ กำลังแก้ไขรายการ";
+            document.getElementById('btn-submit-task').textContent = "💾 อัปเดตรายการที่แก้ไข";
+            
+            // เลื่อนหน้าจอขึ้นไปที่ฟอร์มกรอกข้อมูลโดยอัตโนมัติเพื่อให้ใช้งานง่ายบนมือถือ
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderTaskBoard() {
@@ -489,6 +615,7 @@
                         li.innerHTML = `
                             <span class="task-text">${task.text}</span> 
                             <div class="task-badge-group">
+                                <button class="btn-edit" onclick="editTask('${task.id}')">แก้ไข</button>
                                 <span class="task-date">${formatDateDisplay(task.date)}</span>
                                 <span class="task-time">${task.time}</span>
                             </div>
